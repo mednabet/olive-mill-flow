@@ -84,6 +84,17 @@ Deno.serve(async (req) => {
     if (action === "remove_role") {
       const { user_id, role } = body;
       if (!user_id || !role) return json({ error: "missing_params" }, 400);
+      // Garde-fou : ne jamais retirer le rôle admin du compte 'admin'
+      if (role === "admin") {
+        const { data: prof } = await admin
+          .from("profiles")
+          .select("username")
+          .eq("id", user_id)
+          .maybeSingle();
+        if (prof?.username === "admin") {
+          return json({ error: "cannot_remove_admin_role_from_admin_account" }, 403);
+        }
+      }
       const { error } = await admin.from("user_roles").delete().eq("user_id", user_id).eq("role", role);
       if (error) throw error;
       await admin.from("audit_logs").insert({
