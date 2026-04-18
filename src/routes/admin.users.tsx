@@ -161,22 +161,28 @@ function UsersAdminPage() {
                     {u.roles.length === 0 ? (
                       <span className="text-xs italic text-muted-foreground">{t("role.none")}</span>
                     ) : (
-                      u.roles.map((r) => (
-                        <span
-                          key={r}
-                          className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
-                        >
-                          {t(`role.${r}` as TranslationKey)}
-                          <button
-                            onClick={() => removeRole.mutate({ user_id: u.id, role: r })}
-                            className="hover:text-destructive"
-                            disabled={removeRole.isPending}
-                            aria-label={t("admin.users.remove_role")}
+                      u.roles.map((r) => {
+                        const isProtectedAdmin =
+                          r === "admin" && u.profile?.username === "admin";
+                        return (
+                          <span
+                            key={r}
+                            className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
                           >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </span>
-                      ))
+                            {t(`role.${r}` as TranslationKey)}
+                            {!isProtectedAdmin && (
+                              <button
+                                onClick={() => removeRole.mutate({ user_id: u.id, role: r })}
+                                className="hover:text-destructive"
+                                disabled={removeRole.isPending}
+                                aria-label={t("admin.users.remove_role")}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })
                     )}
 
                     <Select onValueChange={(v) => setRole.mutate({ user_id: u.id, role: v as AppRole })}>
