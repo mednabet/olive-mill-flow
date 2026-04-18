@@ -848,7 +848,14 @@ export type Database = {
         }
         Returns: boolean
       }
-      next_arrival_ticket: { Args: never; Returns: string }
+      next_arrival_ticket:
+        | { Args: never; Returns: string }
+        | {
+            Args: {
+              _service_type?: Database["public"]["Enums"]["service_type"]
+            }
+            Returns: string
+          }
       next_client_code: { Args: never; Returns: string }
       next_crushing_code: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
