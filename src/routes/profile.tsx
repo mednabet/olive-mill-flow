@@ -2,7 +2,7 @@
  * Page "Mon profil" : édition des infos personnelles et changement de mot de passe.
  * Accessible à tout utilisateur connecté.
  */
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
