@@ -505,6 +505,8 @@ const dict = {
     "common.never": "أبداً",
     "common.active": "نشط",
     "common.inactive": "غير نشط",
+    "common.activate": "تفعيل",
+    "common.deactivate": "تعطيل",
     "common.status": "الحالة",
     "common.created_at": "تاريخ الإنشاء",
     "common.total": "المجموع",
