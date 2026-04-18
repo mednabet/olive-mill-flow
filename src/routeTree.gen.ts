@@ -22,6 +22,8 @@ import { Route as ArrivalsRouteImport } from './routes/arrivals'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminLinesRouteImport } from './routes/admin.lines'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 
 const WeighingRoute = WeighingRouteImport.update({
   id: '/weighing',
@@ -88,6 +90,16 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLinesRoute = AdminLinesRouteImport.update({
+  id: '/admin/lines',
+  path: '/admin/lines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,6 +113,8 @@ export interface FileRoutesByFullPath {
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
   '/weighing': typeof WeighingRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/lines': typeof AdminLinesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
 }
@@ -116,6 +130,8 @@ export interface FileRoutesByTo {
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
   '/weighing': typeof WeighingRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/lines': typeof AdminLinesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
 }
@@ -132,6 +148,8 @@ export interface FileRoutesById {
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
   '/weighing': typeof WeighingRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/lines': typeof AdminLinesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
 }
@@ -149,6 +167,8 @@ export interface FileRouteTypes {
     | '/queue'
     | '/stocks'
     | '/weighing'
+    | '/admin/audit'
+    | '/admin/lines'
     | '/admin/settings'
     | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
@@ -164,6 +184,8 @@ export interface FileRouteTypes {
     | '/queue'
     | '/stocks'
     | '/weighing'
+    | '/admin/audit'
+    | '/admin/lines'
     | '/admin/settings'
     | '/admin/users'
   id:
@@ -179,6 +201,8 @@ export interface FileRouteTypes {
     | '/queue'
     | '/stocks'
     | '/weighing'
+    | '/admin/audit'
+    | '/admin/lines'
     | '/admin/settings'
     | '/admin/users'
   fileRoutesById: FileRoutesById
@@ -195,6 +219,8 @@ export interface RootRouteChildren {
   QueueRoute: typeof QueueRoute
   StocksRoute: typeof StocksRoute
   WeighingRoute: typeof WeighingRoute
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminLinesRoute: typeof AdminLinesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
 }
@@ -292,6 +318,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/lines': {
+      id: '/admin/lines'
+      path: '/admin/lines'
+      fullPath: '/admin/lines'
+      preLoaderRoute: typeof AdminLinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -307,6 +347,8 @@ const rootRouteChildren: RootRouteChildren = {
   QueueRoute: QueueRoute,
   StocksRoute: StocksRoute,
   WeighingRoute: WeighingRoute,
+  AdminAuditRoute: AdminAuditRoute,
+  AdminLinesRoute: AdminLinesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
 }

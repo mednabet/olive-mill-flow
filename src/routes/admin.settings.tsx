@@ -67,8 +67,15 @@ function SettingsPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      await supabase.from("settings").upsert({ key: "mill_info", value: mill });
-      await supabase.from("settings").upsert({ key: "vat_default", value: { rate: parseFloat(vatRate) || 20, currency } });
+      await supabase
+        .from("settings")
+        .upsert({ key: "mill_info", value: mill as never }, { onConflict: "key" });
+      await supabase
+        .from("settings")
+        .upsert(
+          { key: "vat_default", value: { rate: parseFloat(vatRate) || 20, currency } as never },
+          { onConflict: "key" },
+        );
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["settings-mill"] });
