@@ -1,24 +1,23 @@
 /**
  * Page admin : gestion des utilisateurs et rôles.
- * - Appelle l'edge function admin-users (service-role) pour lister auth.users
- * - Ajoute / retire des rôles via la même fonction
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Shield, Search, Plus, X } from "lucide-react";
+import { Shield, Search, Plus, X, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
 import { RequireRole } from "@/components/RequireRole";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatDateTime } from "@/lib/format";
 import type { Database } from "@/integrations/supabase/types";
 
