@@ -15,6 +15,7 @@ import {
   Monitor,
   Settings,
   Shield,
+  ScrollText,
   LogOut,
   Droplets,
 } from "lucide-react";
@@ -43,6 +44,8 @@ const NAV: NavItem[] = [
   { to: "/invoices", label: "nav.invoices", icon: Receipt, roles: ["admin", "superviseur", "caisse"] },
   { to: "/public-display", label: "nav.public_display", icon: Monitor, roles: ["admin", "superviseur"] },
   { to: "/admin/users", label: "nav.users", icon: Shield, roles: ["admin"] },
+  { to: "/admin/lines", label: "nav.lines", icon: Factory, roles: ["admin", "superviseur"] },
+  { to: "/admin/audit", label: "nav.audit", icon: ScrollText, roles: ["admin", "superviseur"] },
   { to: "/admin/settings", label: "nav.settings", icon: Settings, roles: ["admin"] },
 ];
 
