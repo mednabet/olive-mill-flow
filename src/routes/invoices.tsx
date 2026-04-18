@@ -239,7 +239,7 @@ function InvoiceDetailsDialog({ invoice, onClose }: { invoice: EnrichedInvoice |
     enabled: !!invoice,
     refetchInterval: 5000,
   });
-  const inv = fresh.data ?? invoice;
+  const inv: EnrichedInvoice = (fresh.data ?? invoice) as EnrichedInvoice;
 
   const addItem = useMutation({
     mutationFn: async (payload: { description: string; quantity: number; unit_price: number }) => {
