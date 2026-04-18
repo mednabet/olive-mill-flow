@@ -151,6 +151,21 @@ function WeighingPage() {
             className="ps-9"
           />
         </div>
+        {scales && scales.length > 0 && (
+          <Select value={selectedScaleId} onValueChange={setSelectedScaleId}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue placeholder={t("admin.scales.title")} />
+            </SelectTrigger>
+            <SelectContent>
+              {scales.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  <span className="font-mono text-xs tabular me-2">{s.code}</span>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {isLoading ? (
