@@ -6,7 +6,7 @@
  * - Création d'un dossier d'écrasement depuis une arrivée déjà pesée (service "crushing")
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Scale, Search, Printer } from "lucide-react";
@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
-import { useAllowManualConfig } from "@/lib/settings";
+import { useAllowManualConfig, useScales } from "@/lib/settings";
 import { RequireRole } from "@/components/RequireRole";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -60,10 +61,36 @@ export const Route = createFileRoute("/weighing")({
 
 function WeighingPage() {
   const { t } = useI18n();
+  const { profile } = useAuth();
+  const { data: scales } = useScales(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"pending" | "all">("pending");
   const [target, setTarget] = useState<EnrichedArrival | null>(null);
   const [printArrival, setPrintArrival] = useState<EnrichedArrival | null>(null);
+  const [selectedScaleId, setSelectedScaleId] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return window.localStorage.getItem("weighing.selected_scale_id") ?? "";
+  });
+
+  // Initialise depuis le profil utilisateur si rien en localStorage
+  useEffect(() => {
+    if (!selectedScaleId && profile?.default_scale_id) {
+      setSelectedScaleId(profile.default_scale_id);
+    } else if (!selectedScaleId && scales && scales.length > 0) {
+      setSelectedScaleId(scales[0].id);
+    }
+  }, [profile?.default_scale_id, scales, selectedScaleId]);
+
+  useEffect(() => {
+    if (selectedScaleId && typeof window !== "undefined") {
+      window.localStorage.setItem("weighing.selected_scale_id", selectedScaleId);
+    }
+  }, [selectedScaleId]);
+
+  const selectedScale = useMemo(
+    () => scales?.find((s) => s.id === selectedScaleId) ?? null,
+    [scales, selectedScaleId],
+  );
 
   const { data: arrivals, isLoading } = useQuery({
     queryKey: ["weighing-arrivals", filter],
@@ -125,6 +152,21 @@ function WeighingPage() {
             className="ps-9"
           />
         </div>
+        {scales && scales.length > 0 && (
+          <Select value={selectedScaleId} onValueChange={setSelectedScaleId}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue placeholder={t("admin.scales.title")} />
+            </SelectTrigger>
+            <SelectContent>
+              {scales.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  <span className="font-mono text-xs tabular me-2">{s.code}</span>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {isLoading ? (

@@ -586,6 +586,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          default_scale_id: string | null
           full_name: string
           id: string
           is_active: boolean
@@ -595,6 +596,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          default_scale_id?: string | null
           full_name?: string
           id: string
           is_active?: boolean
@@ -604,12 +606,60 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          default_scale_id?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
           phone?: string | null
           preferred_language?: string
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_default_scale_id_fkey"
+            columns: ["default_scale_id"]
+            isOneToOne: false
+            referencedRelation: "scales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scales: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["scale_kind"]
+          max_capacity_kg: number
+          name: string
+          notes: string | null
+          updated_at: string
+          websocket_url: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["scale_kind"]
+          max_capacity_kg?: number
+          name: string
+          notes?: string | null
+          updated_at?: string
+          websocket_url?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["scale_kind"]
+          max_capacity_kg?: number
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          websocket_url?: string | null
         }
         Relationships: []
       }
@@ -792,6 +842,7 @@ export type Database = {
           manual_reason: string | null
           performed_at: string
           performed_by: string | null
+          scale_id: string | null
           source: Database["public"]["Enums"]["weighing_source"]
           weight_kg: number
         }
@@ -804,6 +855,7 @@ export type Database = {
           manual_reason?: string | null
           performed_at?: string
           performed_by?: string | null
+          scale_id?: string | null
           source?: Database["public"]["Enums"]["weighing_source"]
           weight_kg: number
         }
@@ -816,6 +868,7 @@ export type Database = {
           manual_reason?: string | null
           performed_at?: string
           performed_by?: string | null
+          scale_id?: string | null
           source?: Database["public"]["Enums"]["weighing_source"]
           weight_kg?: number
         }
@@ -825,6 +878,13 @@ export type Database = {
             columns: ["arrival_id"]
             isOneToOne: false
             referencedRelation: "arrivals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weighings_scale_id_fkey"
+            columns: ["scale_id"]
+            isOneToOne: false
+            referencedRelation: "scales"
             referencedColumns: ["id"]
           },
         ]
@@ -891,6 +951,7 @@ export type Database = {
       notification_status: "pending" | "sent" | "failed"
       payment_method: "cash" | "transfer" | "card" | "other"
       priority_level: "normal" | "high" | "urgent"
+      scale_kind: "scale" | "truck_scale"
       service_type: "weigh_simple" | "weigh_double" | "crushing"
       stock_kind:
         | "client_olives"
@@ -1050,6 +1111,7 @@ export const Constants = {
       notification_status: ["pending", "sent", "failed"],
       payment_method: ["cash", "transfer", "card", "other"],
       priority_level: ["normal", "high", "urgent"],
+      scale_kind: ["scale", "truck_scale"],
       service_type: ["weigh_simple", "weigh_double", "crushing"],
       stock_kind: [
         "client_olives",
