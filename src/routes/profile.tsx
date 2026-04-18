@@ -224,6 +224,3 @@ function ProfilePage() {
     </div>
   );
 }
-
-// Pour éviter erreur de redirect non utilisé
-void redirect;
