@@ -26,10 +26,15 @@ interface AuthCtx {
   roles: AppRole[];
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  /** Connexion par identifiant (username) — l'email synthétique est dérivé. */
+  signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+}
+
+/** Convertit un identifiant en email synthétique interne pour Supabase Auth. */
+export function usernameToEmail(username: string): string {
+  return `${username.trim().toLowerCase()}@local.app`;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
