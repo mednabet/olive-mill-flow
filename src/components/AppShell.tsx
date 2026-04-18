@@ -18,6 +18,7 @@ import {
   ScrollText,
   LogOut,
   Droplets,
+  UserCircle,
 } from "lucide-react";
 import { useAuth, type AppRole } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
