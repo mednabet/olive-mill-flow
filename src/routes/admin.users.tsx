@@ -55,6 +55,10 @@ function UsersAdminPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ username: "", full_name: "", phone: "", password: "", role: "" as AppRole | "" });
+
+  const resetForm = () => setForm({ username: "", full_name: "", phone: "", password: "", role: "" });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -71,7 +75,8 @@ function UsersAdminPage() {
     return data.filter(
       (u) =>
         u.email?.toLowerCase().includes(q) ||
-        u.profile?.full_name.toLowerCase().includes(q),
+        u.profile?.full_name.toLowerCase().includes(q) ||
+        u.profile?.username?.toLowerCase().includes(q),
     );
   }, [data, search]);
 
@@ -89,9 +94,42 @@ function UsersAdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const createUser = useMutation({
+    mutationFn: async () => {
+      const username = form.username.trim().toLowerCase();
+      if (!/^[a-z0-9._-]{2,}$/.test(username)) throw new Error(t("admin.users.username_invalid"));
+      if (form.password.length < 6) throw new Error(t("profile.password_too_short"));
+      if (!form.full_name.trim()) throw new Error(t("auth.full_name"));
+      return callAdmin("create_user", {
+        username,
+        password: form.password,
+        full_name: form.full_name.trim(),
+        phone: form.phone.trim() || null,
+        role: form.role || null,
+      });
+    },
+    onSuccess: () => {
+      toast.success(t("admin.users.created_ok"));
+      setCreateOpen(false);
+      resetForm();
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-6">
-      <PageHeader title={t("admin.users.title")} subtitle={t("admin.users.subtitle")} icon={<Shield className="h-5 w-5" />} />
+      <PageHeader
+        title={t("admin.users.title")}
+        subtitle={t("admin.users.subtitle")}
+        icon={<Shield className="h-5 w-5" />}
+        actions={
+          <Button onClick={() => setCreateOpen(true)}>
+            <UserPlus className="me-1 h-4 w-4" />
+            {t("admin.users.new")}
+          </Button>
+        }
+      />
 
       <div className="relative">
         <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
