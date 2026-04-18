@@ -78,7 +78,6 @@ function ArrivalsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"today" | "all">("today");
   const [showNew, setShowNew] = useState(false);
-  const [printArrival, setPrintArrival] = useState<EnrichedArrival | null>(null);
 
   const { data: arrivals, isLoading } = useQuery({
     queryKey: ["arrivals", filter],
