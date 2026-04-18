@@ -28,7 +28,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { ClientPicker } from "@/components/clients/ClientPicker";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
-import { ArrivalTicket } from "@/components/arrivals/ArrivalTicket";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
