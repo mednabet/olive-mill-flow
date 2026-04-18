@@ -68,6 +68,8 @@ const dict = {
     "common.never": "Jamais",
     "common.active": "Actif",
     "common.inactive": "Inactif",
+    "common.activate": "Activer",
+    "common.deactivate": "Désactiver",
     "common.status": "Statut",
     "common.created_at": "Créé le",
     "common.total": "Total",
