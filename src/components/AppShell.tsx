@@ -15,6 +15,7 @@ import {
   Monitor,
   Settings,
   Shield,
+  ScrollText,
   LogOut,
   Droplets,
 } from "lucide-react";
