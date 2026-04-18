@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
-import { useAllowManualConfig } from "@/lib/settings";
+import { useAllowManualConfig, useScales } from "@/lib/settings";
 import { RequireRole } from "@/components/RequireRole";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
