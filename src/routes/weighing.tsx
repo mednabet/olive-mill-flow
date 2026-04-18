@@ -288,10 +288,16 @@ function WeighingRow({
 
 function WeighingDialog({
   arrival,
+  scaleId,
+  scaleUrl,
+  scaleName,
   onClose,
   onPrint,
 }: {
   arrival: EnrichedArrival | null;
+  scaleId: string | null;
+  scaleUrl: string | null;
+  scaleName: string | null;
   onClose: () => void;
   onPrint: (a: EnrichedArrival) => void;
 }) {
