@@ -388,7 +388,7 @@ function NewArrivalDialog({
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success(t("arrival.created_success", data.ticket_number));
       reset();
-      onCreated(data);
+      onCreated();
     },
     onError: (e: Error) => toast.error(e.message),
   });
