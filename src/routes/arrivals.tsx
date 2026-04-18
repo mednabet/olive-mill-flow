@@ -14,7 +14,6 @@ import {
   PackageOpen,
   Plus,
   Search,
-  Printer,
   Scale,
   Factory,
   Ban,
