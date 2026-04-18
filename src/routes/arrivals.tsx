@@ -284,10 +284,6 @@ function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
           </div>
 
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={onPrint}>
-              <Printer className="me-1 h-4 w-4" />
-              {t("common.print")}
-            </Button>
             {!isCancelled && arrival.service_type !== "crushing" && (
               <Button
                 variant="ghost"
