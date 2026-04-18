@@ -96,6 +96,34 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "create_user") {
+      const { username, password, full_name, role } = body;
+      if (!username || !password || !full_name) return json({ error: "missing_params" }, 400);
+      const email = `${String(username).trim().toLowerCase()}@local.app`;
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name,
+          username: String(username).trim().toLowerCase(),
+          preferred_language: "fr",
+        },
+      });
+      if (createErr) throw createErr;
+      if (role && created.user) {
+        await admin.from("user_roles").insert({ user_id: created.user.id, role });
+      }
+      await admin.from("audit_logs").insert({
+        action: "user_created",
+        entity_type: "auth.users",
+        entity_id: created.user?.id ?? null,
+        user_id: userData.user.id,
+        new_values: { username, full_name, role },
+      });
+      return json({ ok: true, user_id: created.user?.id });
+    }
+
     return json({ error: "unknown_action" }, 400);
   } catch (e) {
     console.error("admin-users error", e);
