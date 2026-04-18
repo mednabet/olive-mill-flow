@@ -214,7 +214,7 @@ const STATUS_COLOR: Record<ArrivalStatus, string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
-function ArrivalRow({ arrival, onPrint }: { arrival: EnrichedArrival; onPrint: () => void }) {
+function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
   const { t, locale } = useI18n();
   const qc = useQueryClient();
   const navigate = useNavigate();
