@@ -30,7 +30,7 @@ interface AdminUser {
   email: string;
   created_at: string;
   last_sign_in_at: string | null;
-  profile: { full_name: string; phone: string | null } | null;
+  profile: { full_name: string; phone: string | null; username: string | null } | null;
   roles: AppRole[];
 }
 
