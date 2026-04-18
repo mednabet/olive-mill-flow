@@ -9,38 +9,268 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WeighingRouteImport } from './routes/weighing'
+import { Route as StocksRouteImport } from './routes/stocks'
+import { Route as QueueRouteImport } from './routes/queue'
+import { Route as PublicDisplayRouteImport } from './routes/public-display'
+import { Route as ProductionRouteImport } from './routes/production'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as InvoicesRouteImport } from './routes/invoices'
+import { Route as CrushingRouteImport } from './routes/crushing'
+import { Route as ClientsRouteImport } from './routes/clients'
+import { Route as ArrivalsRouteImport } from './routes/arrivals'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 
+const WeighingRoute = WeighingRouteImport.update({
+  id: '/weighing',
+  path: '/weighing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StocksRoute = StocksRouteImport.update({
+  id: '/stocks',
+  path: '/stocks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QueueRoute = QueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicDisplayRoute = PublicDisplayRouteImport.update({
+  id: '/public-display',
+  path: '/public-display',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductionRoute = ProductionRouteImport.update({
+  id: '/production',
+  path: '/production',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoicesRoute = InvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrushingRoute = CrushingRouteImport.update({
+  id: '/crushing',
+  path: '/crushing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsRoute = ClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArrivalsRoute = ArrivalsRouteImport.update({
+  id: '/arrivals',
+  path: '/arrivals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/arrivals': typeof ArrivalsRoute
+  '/clients': typeof ClientsRoute
+  '/crushing': typeof CrushingRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/production': typeof ProductionRoute
+  '/public-display': typeof PublicDisplayRoute
+  '/queue': typeof QueueRoute
+  '/stocks': typeof StocksRoute
+  '/weighing': typeof WeighingRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arrivals': typeof ArrivalsRoute
+  '/clients': typeof ClientsRoute
+  '/crushing': typeof CrushingRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/production': typeof ProductionRoute
+  '/public-display': typeof PublicDisplayRoute
+  '/queue': typeof QueueRoute
+  '/stocks': typeof StocksRoute
+  '/weighing': typeof WeighingRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/arrivals': typeof ArrivalsRoute
+  '/clients': typeof ClientsRoute
+  '/crushing': typeof CrushingRoute
+  '/invoices': typeof InvoicesRoute
+  '/login': typeof LoginRoute
+  '/production': typeof ProductionRoute
+  '/public-display': typeof PublicDisplayRoute
+  '/queue': typeof QueueRoute
+  '/stocks': typeof StocksRoute
+  '/weighing': typeof WeighingRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/arrivals'
+    | '/clients'
+    | '/crushing'
+    | '/invoices'
+    | '/login'
+    | '/production'
+    | '/public-display'
+    | '/queue'
+    | '/stocks'
+    | '/weighing'
+    | '/admin/settings'
+    | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/arrivals'
+    | '/clients'
+    | '/crushing'
+    | '/invoices'
+    | '/login'
+    | '/production'
+    | '/public-display'
+    | '/queue'
+    | '/stocks'
+    | '/weighing'
+    | '/admin/settings'
+    | '/admin/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/arrivals'
+    | '/clients'
+    | '/crushing'
+    | '/invoices'
+    | '/login'
+    | '/production'
+    | '/public-display'
+    | '/queue'
+    | '/stocks'
+    | '/weighing'
+    | '/admin/settings'
+    | '/admin/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArrivalsRoute: typeof ArrivalsRoute
+  ClientsRoute: typeof ClientsRoute
+  CrushingRoute: typeof CrushingRoute
+  InvoicesRoute: typeof InvoicesRoute
+  LoginRoute: typeof LoginRoute
+  ProductionRoute: typeof ProductionRoute
+  PublicDisplayRoute: typeof PublicDisplayRoute
+  QueueRoute: typeof QueueRoute
+  StocksRoute: typeof StocksRoute
+  WeighingRoute: typeof WeighingRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/weighing': {
+      id: '/weighing'
+      path: '/weighing'
+      fullPath: '/weighing'
+      preLoaderRoute: typeof WeighingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stocks': {
+      id: '/stocks'
+      path: '/stocks'
+      fullPath: '/stocks'
+      preLoaderRoute: typeof StocksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/queue': {
+      id: '/queue'
+      path: '/queue'
+      fullPath: '/queue'
+      preLoaderRoute: typeof QueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/public-display': {
+      id: '/public-display'
+      path: '/public-display'
+      fullPath: '/public-display'
+      preLoaderRoute: typeof PublicDisplayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/production': {
+      id: '/production'
+      path: '/production'
+      fullPath: '/production'
+      preLoaderRoute: typeof ProductionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoices': {
+      id: '/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof InvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crushing': {
+      id: '/crushing'
+      path: '/crushing'
+      fullPath: '/crushing'
+      preLoaderRoute: typeof CrushingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients': {
+      id: '/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arrivals': {
+      id: '/arrivals'
+      path: '/arrivals'
+      fullPath: '/arrivals'
+      preLoaderRoute: typeof ArrivalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +278,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArrivalsRoute: ArrivalsRoute,
+  ClientsRoute: ClientsRoute,
+  CrushingRoute: CrushingRoute,
+  InvoicesRoute: InvoicesRoute,
+  LoginRoute: LoginRoute,
+  ProductionRoute: ProductionRoute,
+  PublicDisplayRoute: PublicDisplayRoute,
+  QueueRoute: QueueRoute,
+  StocksRoute: StocksRoute,
+  WeighingRoute: WeighingRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
