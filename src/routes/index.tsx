@@ -131,12 +131,23 @@ function Dashboard() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Construction className="h-5 w-5 text-accent" />
-            <CardTitle>{t("dash.coming_soon")}</CardTitle>
-          </div>
+          <CardTitle className="text-base">{t("dash.quick_actions")}</CardTitle>
           <CardDescription>{t("dash.coming_soon_desc")}</CardDescription>
         </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button asChild size="lg" className="gap-2">
+            <Link to="/arrivals">
+              <Plus className="h-4 w-4" />
+              {t("dash.new_arrival")}
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2">
+            <Link to="/clients">
+              <UserPlus className="h-4 w-4" />
+              {t("dash.new_client")}
+            </Link>
+          </Button>
+        </CardContent>
       </Card>
     </div>
   );
