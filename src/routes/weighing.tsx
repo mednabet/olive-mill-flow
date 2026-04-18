@@ -185,7 +185,14 @@ function WeighingPage() {
         </ul>
       )}
 
-      <WeighingDialog arrival={target} onClose={() => setTarget(null)} onPrint={(a) => { setTarget(null); setPrintArrival(a); }} />
+      <WeighingDialog
+        arrival={target}
+        scaleId={selectedScaleId || null}
+        scaleUrl={selectedScale?.websocket_url ?? null}
+        scaleName={selectedScale?.name ?? null}
+        onClose={() => setTarget(null)}
+        onPrint={(a) => { setTarget(null); setPrintArrival(a); }}
+      />
 
       <Dialog open={!!printArrival} onOpenChange={(o) => { if (!o) setPrintArrival(null); }}>
         <DialogContent className="max-w-md">
