@@ -45,6 +45,7 @@ const NAV: NavItem[] = [
   { to: "/public-display", label: "nav.public_display", icon: Monitor, roles: ["admin", "superviseur"] },
   { to: "/admin/users", label: "nav.users", icon: Shield, roles: ["admin"] },
   { to: "/admin/lines", label: "nav.lines", icon: Factory, roles: ["admin", "superviseur"] },
+  { to: "/admin/scales", label: "nav.scales", icon: Scale, roles: ["admin", "superviseur"] },
   { to: "/admin/audit", label: "nav.audit", icon: ScrollText, roles: ["admin", "superviseur"] },
   { to: "/admin/settings", label: "nav.settings", icon: Settings, roles: ["admin"] },
 ];

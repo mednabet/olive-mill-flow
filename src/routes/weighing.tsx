@@ -185,7 +185,14 @@ function WeighingPage() {
         </ul>
       )}
 
-      <WeighingDialog arrival={target} onClose={() => setTarget(null)} onPrint={(a) => { setTarget(null); setPrintArrival(a); }} />
+      <WeighingDialog
+        arrival={target}
+        scaleId={selectedScaleId || null}
+        scaleUrl={selectedScale?.websocket_url ?? null}
+        scaleName={selectedScale?.name ?? null}
+        onClose={() => setTarget(null)}
+        onPrint={(a) => { setTarget(null); setPrintArrival(a); }}
+      />
 
       <Dialog open={!!printArrival} onOpenChange={(o) => { if (!o) setPrintArrival(null); }}>
         <DialogContent className="max-w-md">
@@ -281,10 +288,16 @@ function WeighingRow({
 
 function WeighingDialog({
   arrival,
+  scaleId,
+  scaleUrl,
+  scaleName,
   onClose,
   onPrint,
 }: {
   arrival: EnrichedArrival | null;
+  scaleId: string | null;
+  scaleUrl: string | null;
+  scaleName: string | null;
   onClose: () => void;
   onPrint: (a: EnrichedArrival) => void;
 }) {
@@ -332,6 +345,7 @@ function WeighingDialog({
         source,
         manual_reason: source === "manual" ? reason.trim() : null,
         performed_by: user?.id ?? null,
+        scale_id: source === "scale" ? scaleId : null,
       });
       if (error) throw error;
 
@@ -410,6 +424,8 @@ function WeighingDialog({
             reason={reason}
             onReasonChange={setReason}
             allowManual={allowManual}
+            scaleUrl={scaleUrl}
+            scaleName={scaleName}
             autoFocus
           />
         </div>
