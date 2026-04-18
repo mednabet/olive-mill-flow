@@ -345,6 +345,7 @@ function WeighingDialog({
         source,
         manual_reason: source === "manual" ? reason.trim() : null,
         performed_by: user?.id ?? null,
+        scale_id: source === "scale" ? scaleId : null,
       });
       if (error) throw error;
 
