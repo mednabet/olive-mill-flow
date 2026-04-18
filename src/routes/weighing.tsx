@@ -60,10 +60,36 @@ export const Route = createFileRoute("/weighing")({
 
 function WeighingPage() {
   const { t } = useI18n();
+  const { profile } = useAuth();
+  const { data: scales } = useScales(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"pending" | "all">("pending");
   const [target, setTarget] = useState<EnrichedArrival | null>(null);
   const [printArrival, setPrintArrival] = useState<EnrichedArrival | null>(null);
+  const [selectedScaleId, setSelectedScaleId] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return window.localStorage.getItem("weighing.selected_scale_id") ?? "";
+  });
+
+  // Initialise depuis le profil utilisateur si rien en localStorage
+  useEffect(() => {
+    if (!selectedScaleId && profile?.default_scale_id) {
+      setSelectedScaleId(profile.default_scale_id);
+    } else if (!selectedScaleId && scales && scales.length > 0) {
+      setSelectedScaleId(scales[0].id);
+    }
+  }, [profile?.default_scale_id, scales, selectedScaleId]);
+
+  useEffect(() => {
+    if (selectedScaleId && typeof window !== "undefined") {
+      window.localStorage.setItem("weighing.selected_scale_id", selectedScaleId);
+    }
+  }, [selectedScaleId]);
+
+  const selectedScale = useMemo(
+    () => scales?.find((s) => s.id === selectedScaleId) ?? null,
+    [scales, selectedScaleId],
+  );
 
   const { data: arrivals, isLoading } = useQuery({
     queryKey: ["weighing-arrivals", filter],
