@@ -247,11 +247,18 @@ function WeighingDialog({
   onPrint: (a: EnrichedArrival) => void;
 }) {
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const qc = useQueryClient();
+  const { data: allowManualCfg } = useAllowManualConfig();
   const [weight, setWeight] = useState("");
-  const [source, setSource] = useState<WeighingSource>("manual");
+  const [source, setSource] = useState<WeighingSourceUI>("scale");
   const [reason, setReason] = useState("");
+
+  // Règle d'autorisation manuelle :
+  // - admin / superviseur : toujours autorisés
+  // - peseur : seulement si le paramètre global est activé
+  const isPrivileged = (roles ?? []).some((r: AppRole) => r === "admin" || r === "superviseur");
+  const allowManual = isPrivileged || (allowManualCfg?.enabled ?? true);
 
   const kind: WeighingKind = useMemo(() => {
     if (!arrival) return "simple";
@@ -264,7 +271,7 @@ function WeighingDialog({
 
   const reset = () => {
     setWeight("");
-    setSource("manual");
+    setSource("scale");
     setReason("");
   };
 
@@ -274,6 +281,7 @@ function WeighingDialog({
       const w = parseFloat(weight);
       if (!Number.isFinite(w) || w < 0) throw new Error(t("validation.positive"));
       if (source === "manual" && !reason.trim()) throw new Error(t("weigh.manual_reason_required"));
+      if (source === "manual" && !allowManual) throw new Error(t("weigh.manual_disabled"));
 
       const { error } = await supabase.from("weighings").insert({
         arrival_id: arrival.id,
@@ -285,7 +293,6 @@ function WeighingDialog({
       });
       if (error) throw error;
 
-      // Audit log si saisie manuelle
       if (source === "manual") {
         await supabase.from("audit_logs").insert({
           action: "manual_weighing",
@@ -297,14 +304,10 @@ function WeighingDialog({
         });
       }
 
-      // Marque l'arrivée comme "routed" si pesée terminée
       const isDoubleDone = arrival.service_type === "weigh_double" && kind === "second";
       const isSimpleDone = arrival.service_type !== "weigh_double" && kind === "simple";
       if (isDoubleDone || isSimpleDone) {
-        await supabase
-          .from("arrivals")
-          .update({ status: "routed" })
-          .eq("id", arrival.id);
+        await supabase.from("arrivals").update({ status: "routed" }).eq("id", arrival.id);
       }
     },
     onSuccess: async () => {
@@ -357,50 +360,16 @@ function WeighingDialog({
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <Label htmlFor="weight">
-              {t("weigh.weight")} ({t("common.kg")}) <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="weight"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              min="0"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              autoFocus
-              className="font-mono text-2xl tabular h-14"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t("weigh.source.scale")} / {t("weigh.source.manual")}</Label>
-            <Select value={source} onValueChange={(v) => setSource(v as WeighingSource)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manual">{t("weigh.source.manual")}</SelectItem>
-                <SelectItem value="scale">{t("weigh.source.scale")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {source === "manual" && (
-            <div className="space-y-1.5">
-              <Label htmlFor="reason">
-                {t("weigh.manual_reason")} <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder={t("weigh.manual_reason_ph")}
-                rows={2}
-              />
-            </div>
-          )}
+          <ScaleInput
+            value={weight}
+            onChange={setWeight}
+            source={source}
+            onSourceChange={setSource}
+            reason={reason}
+            onReasonChange={setReason}
+            allowManual={allowManual}
+            autoFocus
+          />
         </div>
 
         <DialogFooter>
