@@ -18,6 +18,7 @@ import {
   ScrollText,
   LogOut,
   Droplets,
+  UserCircle,
 } from "lucide-react";
 import { useAuth, type AppRole } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
@@ -126,7 +127,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="text-sm text-muted-foreground">
             {t("common.welcome_user")}, <span className="font-medium text-foreground">{profile?.full_name || "—"}</span>
           </div>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-2">
+            <Link to="/profile" className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm hover:bg-muted">
+              <UserCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("nav.profile")}</span>
+            </Link>
+            <LanguageSwitcher />
+          </div>
         </header>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>

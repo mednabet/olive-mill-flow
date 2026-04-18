@@ -13,6 +13,7 @@ import { Route as WeighingRouteImport } from './routes/weighing'
 import { Route as StocksRouteImport } from './routes/stocks'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PublicDisplayRouteImport } from './routes/public-display'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProductionRouteImport } from './routes/production'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -44,6 +45,11 @@ const QueueRoute = QueueRouteImport.update({
 const PublicDisplayRoute = PublicDisplayRouteImport.update({
   id: '/public-display',
   path: '/public-display',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductionRoute = ProductionRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/production': typeof ProductionRoute
+  '/profile': typeof ProfileRoute
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/production': typeof ProductionRoute
+  '/profile': typeof ProfileRoute
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/production': typeof ProductionRoute
+  '/profile': typeof ProfileRoute
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/production'
+    | '/profile'
     | '/public-display'
     | '/queue'
     | '/stocks'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/production'
+    | '/profile'
     | '/public-display'
     | '/queue'
     | '/stocks'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/production'
+    | '/profile'
     | '/public-display'
     | '/queue'
     | '/stocks'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   InvoicesRoute: typeof InvoicesRoute
   LoginRoute: typeof LoginRoute
   ProductionRoute: typeof ProductionRoute
+  ProfileRoute: typeof ProfileRoute
   PublicDisplayRoute: typeof PublicDisplayRoute
   QueueRoute: typeof QueueRoute
   StocksRoute: typeof StocksRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/public-display'
       fullPath: '/public-display'
       preLoaderRoute: typeof PublicDisplayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/production': {
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvoicesRoute: InvoicesRoute,
   LoginRoute: LoginRoute,
   ProductionRoute: ProductionRoute,
+  ProfileRoute: ProfileRoute,
   PublicDisplayRoute: PublicDisplayRoute,
   QueueRoute: QueueRoute,
   StocksRoute: StocksRoute,

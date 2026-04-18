@@ -26,10 +26,15 @@ interface AuthCtx {
   roles: AppRole[];
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  /** Connexion par identifiant (username) — l'email synthétique est dérivé. */
+  signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+}
+
+/** Convertit un identifiant en email synthétique interne pour Supabase Auth. */
+export function usernameToEmail(username: string): string {
+  return `${username.trim().toLowerCase()}@local.app`;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -82,21 +87,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [loadProfileAndRoles]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (username: string, password: string) => {
+    const email = usernameToEmail(username);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  }, []);
-
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: { full_name: fullName },
-      },
-    });
     if (error) throw error;
   }, []);
 
@@ -118,11 +111,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       hasRole: (r) => roles.includes(r),
       hasAnyRole: (rs) => rs.some((r) => roles.includes(r)),
       signIn,
-      signUp,
       signOut,
       refresh,
     }),
-    [loading, user, session, profile, roles, signIn, signUp, signOut, refresh],
+    [loading, user, session, profile, roles, signIn, signOut, refresh],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
