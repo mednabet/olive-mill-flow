@@ -24,6 +24,7 @@ const dict = {
     "nav.settings": "Paramètres",
     "nav.users": "Utilisateurs",
     "nav.lines": "Lignes d'écrasement",
+    "nav.scales": "Balances / ponts bascules",
     "nav.audit": "Journal d'audit",
     "auth.signin": "Se connecter",
     "auth.signup": "Créer un compte",
