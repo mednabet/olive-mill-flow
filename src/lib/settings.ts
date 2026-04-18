@@ -1,30 +1,43 @@
 /**
- * Helpers pour lire les paramètres système stockés dans la table `settings`.
+ * Helpers pour lire les paramètres système et le référentiel des balances.
  * Cache court via TanStack Query côté composants.
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-export interface ScaleConfig {
-  url: string;
-}
+export type Scale = Database["public"]["Tables"]["scales"]["Row"];
+
 export interface WeighingConfig {
   enabled: boolean;
 }
 
-export function useScaleConfig() {
+/** Liste des balances actives (référentiel multi-ponts bascules). */
+export function useScales(includeInactive = false) {
   return useQuery({
-    queryKey: ["settings", "scale.websocket_url"],
-    queryFn: async (): Promise<ScaleConfig> => {
-      const { data } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("key", "scale.websocket_url")
-        .maybeSingle();
-      const v = data?.value as ScaleConfig | null;
-      return { url: v?.url ?? "ws://localhost:9001" };
+    queryKey: ["scales", includeInactive],
+    queryFn: async (): Promise<Scale[]> => {
+      let q = supabase.from("scales").select("*").order("name", { ascending: true });
+      if (!includeInactive) q = q.eq("is_active", true);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
     },
-    staleTime: 60_000,
+    staleTime: 30_000,
+  });
+}
+
+/** Récupère une balance par son id. */
+export function useScale(id: string | null | undefined) {
+  return useQuery({
+    queryKey: ["scale", id],
+    queryFn: async (): Promise<Scale | null> => {
+      if (!id) return null;
+      const { data } = await supabase.from("scales").select("*").eq("id", id).maybeSingle();
+      return data ?? null;
+    },
+    enabled: !!id,
+    staleTime: 30_000,
   });
 }
 
