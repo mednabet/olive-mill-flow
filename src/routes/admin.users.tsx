@@ -55,6 +55,10 @@ function UsersAdminPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ username: "", full_name: "", phone: "", password: "", role: "" as AppRole | "" });
+
+  const resetForm = () => setForm({ username: "", full_name: "", phone: "", password: "", role: "" });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -71,7 +75,8 @@ function UsersAdminPage() {
     return data.filter(
       (u) =>
         u.email?.toLowerCase().includes(q) ||
-        u.profile?.full_name.toLowerCase().includes(q),
+        u.profile?.full_name.toLowerCase().includes(q) ||
+        u.profile?.username?.toLowerCase().includes(q),
     );
   }, [data, search]);
 
@@ -89,9 +94,42 @@ function UsersAdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const createUser = useMutation({
+    mutationFn: async () => {
+      const username = form.username.trim().toLowerCase();
+      if (!/^[a-z0-9._-]{2,}$/.test(username)) throw new Error(t("admin.users.username_invalid"));
+      if (form.password.length < 6) throw new Error(t("profile.password_too_short"));
+      if (!form.full_name.trim()) throw new Error(t("auth.full_name"));
+      return callAdmin("create_user", {
+        username,
+        password: form.password,
+        full_name: form.full_name.trim(),
+        phone: form.phone.trim() || null,
+        role: form.role || null,
+      });
+    },
+    onSuccess: () => {
+      toast.success(t("admin.users.created_ok"));
+      setCreateOpen(false);
+      resetForm();
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-6">
-      <PageHeader title={t("admin.users.title")} subtitle={t("admin.users.subtitle")} icon={<Shield className="h-5 w-5" />} />
+      <PageHeader
+        title={t("admin.users.title")}
+        subtitle={t("admin.users.subtitle")}
+        icon={<Shield className="h-5 w-5" />}
+        actions={
+          <Button onClick={() => setCreateOpen(true)}>
+            <UserPlus className="me-1 h-4 w-4" />
+            {t("admin.users.new")}
+          </Button>
+        }
+      />
 
       <div className="relative">
         <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -159,6 +197,72 @@ function UsersAdminPage() {
           ))}
         </ul>
       )}
+
+      <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) resetForm(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-primary" />
+              {t("admin.users.create_title")}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>{t("auth.username")} <span className="text-destructive">*</span></Label>
+              <Input
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                placeholder={t("auth.username_ph")}
+                autoCapitalize="off"
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">{t("admin.users.username_help")}</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>{t("auth.full_name")} <span className="text-destructive">*</span></Label>
+              <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("auth.phone")}</Label>
+              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} type="tel" dir="ltr" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("auth.password")} <span className="text-destructive">*</span></Label>
+              <Input
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                minLength={6}
+              />
+              <p className="text-xs text-muted-foreground">{t("admin.users.password_help")}</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>{t("admin.users.add_role")}</Label>
+              <Select value={form.role || "__none__"} onValueChange={(v) => setForm({ ...form, role: v === "__none__" ? "" : (v as AppRole) })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {ALL_ROLES.map((r) => (
+                    <SelectItem key={r} value={r}>{t(`role.${r}` as TranslationKey)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCreateOpen(false)}>{t("common.cancel")}</Button>
+            <Button
+              onClick={() => createUser.mutate()}
+              disabled={createUser.isPending || !form.username || !form.full_name || !form.password}
+            >
+              <UserPlus className="me-1 h-4 w-4" />
+              {t("common.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
