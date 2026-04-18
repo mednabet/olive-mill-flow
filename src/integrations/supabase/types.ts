@@ -149,9 +149,57 @@ export type Database = {
         }
         Relationships: []
       }
-      crushing_files: {
+      crushing_file_arrivals: {
         Row: {
           arrival_id: string
+          created_at: string
+          crushing_file_id: string
+          gross_weight_kg: number | null
+          id: string
+          net_weight_kg: number | null
+          position: number
+          tare_weight_kg: number | null
+        }
+        Insert: {
+          arrival_id: string
+          created_at?: string
+          crushing_file_id: string
+          gross_weight_kg?: number | null
+          id?: string
+          net_weight_kg?: number | null
+          position?: number
+          tare_weight_kg?: number | null
+        }
+        Update: {
+          arrival_id?: string
+          created_at?: string
+          crushing_file_id?: string
+          gross_weight_kg?: number | null
+          id?: string
+          net_weight_kg?: number | null
+          position?: number
+          tare_weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crushing_file_arrivals_arrival_id_fkey"
+            columns: ["arrival_id"]
+            isOneToOne: true
+            referencedRelation: "arrivals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crushing_file_arrivals_crushing_file_id_fkey"
+            columns: ["crushing_file_id"]
+            isOneToOne: false
+            referencedRelation: "crushing_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crushing_files: {
+        Row: {
+          arrival_id: string | null
           assigned_line_id: string | null
           client_id: string | null
           completed_at: string | null
@@ -170,7 +218,7 @@ export type Database = {
           tracking_code: string
         }
         Insert: {
-          arrival_id: string
+          arrival_id?: string | null
           assigned_line_id?: string | null
           client_id?: string | null
           completed_at?: string | null
@@ -189,7 +237,7 @@ export type Database = {
           tracking_code: string
         }
         Update: {
-          arrival_id?: string
+          arrival_id?: string | null
           assigned_line_id?: string | null
           client_id?: string | null
           completed_at?: string | null

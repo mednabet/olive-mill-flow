@@ -52,10 +52,26 @@ function SettingsPage() {
       return (data?.value as { rate: number; currency: string }) ?? { rate: 20, currency: "MAD" };
     },
   });
+  const scaleQ = useQuery({
+    queryKey: ["settings-scale"],
+    queryFn: async () => {
+      const { data } = await supabase.from("settings").select("value").eq("key", "scale.websocket_url").maybeSingle();
+      return (data?.value as { url: string }) ?? { url: "ws://localhost:9001" };
+    },
+  });
+  const allowManualQ = useQuery({
+    queryKey: ["settings-allow-manual"],
+    queryFn: async () => {
+      const { data } = await supabase.from("settings").select("value").eq("key", "weighing.allow_manual_for_peseur").maybeSingle();
+      return (data?.value as { enabled: boolean }) ?? { enabled: true };
+    },
+  });
 
   const [mill, setMill] = useState<MillInfo>({});
   const [vatRate, setVatRate] = useState<string>("20");
   const [currency, setCurrency] = useState<string>("MAD");
+  const [scaleUrl, setScaleUrl] = useState<string>("ws://localhost:9001");
+  const [allowManual, setAllowManual] = useState<boolean>(true);
 
   useEffect(() => { if (millQ.data) setMill(millQ.data); }, [millQ.data]);
   useEffect(() => {
@@ -64,6 +80,8 @@ function SettingsPage() {
       setCurrency(vatQ.data.currency ?? "MAD");
     }
   }, [vatQ.data]);
+  useEffect(() => { if (scaleQ.data) setScaleUrl(scaleQ.data.url ?? "ws://localhost:9001"); }, [scaleQ.data]);
+  useEffect(() => { if (allowManualQ.data) setAllowManual(allowManualQ.data.enabled ?? true); }, [allowManualQ.data]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -76,10 +94,26 @@ function SettingsPage() {
           { key: "vat_default", value: { rate: parseFloat(vatRate) || 20, currency } as never },
           { onConflict: "key" },
         );
+      await supabase
+        .from("settings")
+        .upsert(
+          { key: "scale.websocket_url", value: { url: scaleUrl.trim() } as never },
+          { onConflict: "key" },
+        );
+      await supabase
+        .from("settings")
+        .upsert(
+          { key: "weighing.allow_manual_for_peseur", value: { enabled: allowManual } as never },
+          { onConflict: "key" },
+        );
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["settings-mill"] });
       qc.invalidateQueries({ queryKey: ["settings-vat"] });
+      qc.invalidateQueries({ queryKey: ["settings-scale"] });
+      qc.invalidateQueries({ queryKey: ["settings-allow-manual"] });
+      qc.invalidateQueries({ queryKey: ["settings", "scale.websocket_url"] });
+      qc.invalidateQueries({ queryKey: ["settings", "weighing.allow_manual_for_peseur"] });
       qc.invalidateQueries({ queryKey: ["mill-info"] });
       toast.success(t("admin.settings.saved"));
     },
@@ -119,6 +153,40 @@ function SettingsPage() {
             <Label>{t("admin.settings.currency")}</Label>
             <Input value={currency} onChange={(e) => setCurrency(e.target.value)} maxLength={3} className="font-mono uppercase" />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>{t("admin.settings.scale_section")}</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          <Label htmlFor="scale-url">{t("admin.settings.scale_url")}</Label>
+          <Input
+            id="scale-url"
+            value={scaleUrl}
+            onChange={(e) => setScaleUrl(e.target.value)}
+            placeholder="ws://localhost:9001"
+            className="font-mono"
+            dir="ltr"
+          />
+          <p className="text-xs text-muted-foreground">{t("admin.settings.scale_url_help")}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>{t("admin.settings.weighing_section")}</CardTitle></CardHeader>
+        <CardContent>
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={allowManual}
+              onChange={(e) => setAllowManual(e.target.checked)}
+              className="mt-1 h-5 w-5 cursor-pointer accent-primary"
+            />
+            <div className="space-y-1">
+              <div className="font-medium">{t("admin.settings.allow_manual_peseur")}</div>
+              <p className="text-xs text-muted-foreground">{t("admin.settings.allow_manual_peseur_help")}</p>
+            </div>
+          </label>
         </CardContent>
       </Card>
 
