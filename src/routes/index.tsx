@@ -1,11 +1,20 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { PackageOpen, ListOrdered, Factory, CheckCircle2, AlertCircle, Construction } from "lucide-react";
+import {
+  PackageOpen,
+  ListOrdered,
+  Factory,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  UserPlus,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 
