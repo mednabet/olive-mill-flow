@@ -1,11 +1,20 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { PackageOpen, ListOrdered, Factory, CheckCircle2, AlertCircle, Construction } from "lucide-react";
+import {
+  PackageOpen,
+  ListOrdered,
+  Factory,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  UserPlus,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -122,12 +131,23 @@ function Dashboard() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Construction className="h-5 w-5 text-accent" />
-            <CardTitle>{t("dash.coming_soon")}</CardTitle>
-          </div>
+          <CardTitle className="text-base">{t("dash.quick_actions")}</CardTitle>
           <CardDescription>{t("dash.coming_soon_desc")}</CardDescription>
         </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button asChild size="lg" className="gap-2">
+            <Link to="/arrivals">
+              <Plus className="h-4 w-4" />
+              {t("dash.new_arrival")}
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2">
+            <Link to="/clients">
+              <UserPlus className="h-4 w-4" />
+              {t("dash.new_client")}
+            </Link>
+          </Button>
+        </CardContent>
       </Card>
     </div>
   );

@@ -174,11 +174,25 @@
     size: 80mm auto;
     margin: 4mm;
   }
+  html,
   body {
     background: white !important;
     color: black !important;
+    margin: 0;
+    padding: 0;
   }
   .no-print {
     display: none !important;
+  }
+  /* Quand un .ticket-print est présent on cache tout le reste */
+  body:has(.ticket-print) > *:not(:has(.ticket-print)) {
+    display: none !important;
+  }
+  .ticket-print {
+    box-shadow: none !important;
+    border: 0 !important;
+    margin: 0 auto !important;
+    max-width: 80mm !important;
+    page-break-inside: avoid;
   }
 }
