@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeighingRouteImport } from './routes/weighing'
+import { Route as VarietiesRouteImport } from './routes/varieties'
 import { Route as StocksRouteImport } from './routes/stocks'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PublicDisplayRouteImport } from './routes/public-display'
@@ -30,6 +31,11 @@ import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 const WeighingRoute = WeighingRouteImport.update({
   id: '/weighing',
   path: '/weighing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VarietiesRoute = VarietiesRouteImport.update({
+  id: '/varieties',
+  path: '/varieties',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StocksRoute = StocksRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
+  '/varieties': typeof VarietiesRoute
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
+  '/varieties': typeof VarietiesRoute
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
+  '/varieties': typeof VarietiesRoute
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/public-display'
     | '/queue'
     | '/stocks'
+    | '/varieties'
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/public-display'
     | '/queue'
     | '/stocks'
+    | '/varieties'
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/public-display'
     | '/queue'
     | '/stocks'
+    | '/varieties'
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
@@ -243,6 +255,7 @@ export interface RootRouteChildren {
   PublicDisplayRoute: typeof PublicDisplayRoute
   QueueRoute: typeof QueueRoute
   StocksRoute: typeof StocksRoute
+  VarietiesRoute: typeof VarietiesRoute
   WeighingRoute: typeof WeighingRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminLinesRoute: typeof AdminLinesRoute
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/weighing'
       fullPath: '/weighing'
       preLoaderRoute: typeof WeighingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/varieties': {
+      id: '/varieties'
+      path: '/varieties'
+      fullPath: '/varieties'
+      preLoaderRoute: typeof VarietiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stocks': {
@@ -387,6 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicDisplayRoute: PublicDisplayRoute,
   QueueRoute: QueueRoute,
   StocksRoute: StocksRoute,
+  VarietiesRoute: VarietiesRoute,
   WeighingRoute: WeighingRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminLinesRoute: AdminLinesRoute,

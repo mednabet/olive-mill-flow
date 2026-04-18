@@ -482,6 +482,48 @@ export type Database = {
         }
         Relationships: []
       }
+      olive_varieties: {
+        Row: {
+          avg_yield_percent: number | null
+          code: string
+          color: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          avg_yield_percent?: number | null
+          code: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avg_yield_percent?: number | null
+          code?: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
