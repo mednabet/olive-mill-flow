@@ -22,6 +22,7 @@ import { Route as ArrivalsRouteImport } from './routes/arrivals'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminScalesRouteImport } from './routes/admin.scales'
 import { Route as AdminLinesRouteImport } from './routes/admin.lines'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 
@@ -90,6 +91,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminScalesRoute = AdminScalesRouteImport.update({
+  id: '/admin/scales',
+  path: '/admin/scales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminLinesRoute = AdminLinesRouteImport.update({
   id: '/admin/lines',
   path: '/admin/lines',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
+  '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
+  '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
+  '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
+    | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
+    | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
   id:
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
+    | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
   fileRoutesById: FileRoutesById
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   WeighingRoute: typeof WeighingRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminLinesRoute: typeof AdminLinesRoute
+  AdminScalesRoute: typeof AdminScalesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
 }
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/scales': {
+      id: '/admin/scales'
+      path: '/admin/scales'
+      fullPath: '/admin/scales'
+      preLoaderRoute: typeof AdminScalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/lines': {
       id: '/admin/lines'
       path: '/admin/lines'
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   WeighingRoute: WeighingRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminLinesRoute: AdminLinesRoute,
+  AdminScalesRoute: AdminScalesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
 }
