@@ -362,7 +362,9 @@ function NewArrivalDialog({
     mutationFn: async () => {
       if (!client) throw new Error(t("arrival.client_required"));
       // Génère le numéro de ticket via la fonction DB
-      const { data: ticketData, error: ticketErr } = await supabase.rpc("next_arrival_ticket");
+      const { data: ticketData, error: ticketErr } = await supabase.rpc("next_arrival_ticket", {
+        _service_type: serviceType,
+      });
       if (ticketErr) throw ticketErr;
       const ticket = ticketData as string;
 
