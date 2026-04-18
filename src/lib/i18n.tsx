@@ -3,7 +3,6 @@
  * Stocke la préférence dans localStorage et applique dir="rtl"/lang sur <html>.
  */
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { jsx } from "react/jsx-runtime";
 
 export type Locale = "fr" | "ar";
 
