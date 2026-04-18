@@ -9,21 +9,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Scale, Search, Printer, Factory, History } from "lucide-react";
+import { Scale, Search, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
+import { useAllowManualConfig } from "@/lib/settings";
 import { RequireRole } from "@/components/RequireRole";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PrintLayout } from "@/components/PrintLayout";
 import { WeighingTicket } from "@/components/weighing/WeighingTicket";
+import { ScaleInput, type WeighingSourceUI } from "@/components/weighing/ScaleInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,8 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatKg, formatDateTime } from "@/lib/format";
+import { formatKg } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
@@ -43,7 +42,7 @@ type Client = Database["public"]["Tables"]["clients"]["Row"];
 type Vehicle = Database["public"]["Tables"]["vehicles"]["Row"];
 type Weighing = Database["public"]["Tables"]["weighings"]["Row"];
 type WeighingKind = Database["public"]["Enums"]["weighing_kind"];
-type WeighingSource = Database["public"]["Enums"]["weighing_source"];
+type AppRole = Database["public"]["Enums"]["app_role"];
 
 interface EnrichedArrival extends Arrival {
   client: Client | null;
