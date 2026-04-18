@@ -461,6 +461,7 @@ const dict = {
     "nav.settings": "الإعدادات",
     "nav.users": "المستخدمون",
     "nav.lines": "خطوط العصر",
+    "nav.scales": "الموازين / الجسور القبانية",
     "nav.audit": "سجل التدقيق",
     "auth.signin": "تسجيل الدخول",
     "auth.signup": "إنشاء حساب",
