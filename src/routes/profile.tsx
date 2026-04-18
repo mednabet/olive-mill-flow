@@ -2,7 +2,7 @@
  * Page "Mon profil" : édition des infos personnelles et changement de mot de passe.
  * Accessible à tout utilisateur connecté.
  */
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useScales } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
+import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,12 +20,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/profile")({
-  beforeLoad: () => {
-    // Le redirect est géré par auth provider à plus haut niveau ; on s'assure juste qu'on a accès.
-    return;
-  },
-  component: ProfilePage,
+  component: ProfilePageWrapper,
 });
+
+function ProfilePageWrapper() {
+  return (
+    <AppShell>
+      <ProfilePage />
+    </AppShell>
+  );
+}
 
 function ProfilePage() {
   const { t } = useI18n();
@@ -219,6 +224,3 @@ function ProfilePage() {
     </div>
   );
 }
-
-// Pour éviter erreur de redirect non utilisé
-void redirect;
