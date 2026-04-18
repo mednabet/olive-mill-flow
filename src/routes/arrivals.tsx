@@ -325,7 +325,7 @@ function NewArrivalDialog({
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  onCreated: (a: EnrichedArrival) => void;
+  onCreated: () => void;
 }) {
   const { t } = useI18n();
   const { user } = useAuth();
