@@ -161,7 +161,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = (key: TranslationKey): string => dict[locale][key] ?? key;
   const dir = locale === "ar" ? "rtl" : "ltr";
 
-  return jsx(I18nContext.Provider, { value: { locale, setLocale, t, dir }, children });
+  return <I18nContext.Provider value={{ locale, setLocale, t, dir }}>{children}</I18nContext.Provider>;
 }
 
 export function useI18n(): I18nCtx {
