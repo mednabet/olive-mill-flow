@@ -941,6 +941,21 @@ const dict = {
     "role.public_display": "شاشة العرض",
     "role.none": "لا يوجد دور",
     "role.none_desc": "حسابك لا يحتوي على أي دور. اطلب من المدير تعيين دور لك.",
+    // أصناف الزيتون
+    "variety.title": "أصناف الزيتون",
+    "variety.subtitle": "مرجع أصناف الزيتون المعالجة",
+    "variety.new": "صنف جديد",
+    "variety.edit": "تعديل الصنف",
+    "variety.code": "الرمز",
+    "variety.name": "الاسم",
+    "variety.name_ar": "الاسم (عربي)",
+    "variety.color": "اللون",
+    "variety.avg_yield": "المردود المتوسط",
+    "variety.search_placeholder": "ابحث بالاسم أو الرمز…",
+    "variety.empty_title": "لا توجد أصناف",
+    "variety.empty_desc": "ابدأ بإضافة صنف زيتون.",
+    "variety.created": "تم إنشاء الصنف",
+    "variety.updated": "تم تحديث الصنف",
   },
 } as const;
 
