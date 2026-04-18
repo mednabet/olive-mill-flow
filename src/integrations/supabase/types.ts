@@ -14,16 +14,824 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      arrivals: {
+        Row: {
+          client_id: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          service_type: Database["public"]["Enums"]["service_type"]
+          status: Database["public"]["Enums"]["arrival_status"]
+          ticket_number: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          service_type: Database["public"]["Enums"]["service_type"]
+          status?: Database["public"]["Enums"]["arrival_status"]
+          ticket_number: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          service_type?: Database["public"]["Enums"]["service_type"]
+          status?: Database["public"]["Enums"]["arrival_status"]
+          ticket_number?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arrivals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arrivals_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_values: Json | null
+          old_values: Json | null
+          reason: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          reason?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          reason?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          address: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          phone: string | null
+          preferred_language: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          preferred_language?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          preferred_language?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crushing_files: {
+        Row: {
+          arrival_id: string
+          assigned_line_id: string | null
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          estimated_wait_minutes: number | null
+          gross_weight_kg: number | null
+          id: string
+          net_weight_kg: number | null
+          notes: string | null
+          priority: Database["public"]["Enums"]["priority_level"]
+          queue_position: number | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["crushing_status"]
+          tare_weight_kg: number | null
+          tracking_code: string
+        }
+        Insert: {
+          arrival_id: string
+          assigned_line_id?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          estimated_wait_minutes?: number | null
+          gross_weight_kg?: number | null
+          id?: string
+          net_weight_kg?: number | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          queue_position?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["crushing_status"]
+          tare_weight_kg?: number | null
+          tracking_code: string
+        }
+        Update: {
+          arrival_id?: string
+          assigned_line_id?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          estimated_wait_minutes?: number | null
+          gross_weight_kg?: number | null
+          id?: string
+          net_weight_kg?: number | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          queue_position?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["crushing_status"]
+          tare_weight_kg?: number | null
+          tracking_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crushing_files_arrival_id_fkey"
+            columns: ["arrival_id"]
+            isOneToOne: false
+            referencedRelation: "arrivals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crushing_files_assigned_line_id_fkey"
+            columns: ["assigned_line_id"]
+            isOneToOne: false
+            referencedRelation: "crushing_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crushing_files_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crushing_lines: {
+        Row: {
+          code: string
+          created_at: string
+          hourly_capacity_kg: number
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          status: Database["public"]["Enums"]["line_status"]
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          hourly_capacity_kg?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["line_status"]
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          hourly_capacity_kg?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["line_status"]
+        }
+        Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          description: string
+          id: string
+          invoice_id: string
+          quantity: number
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          description: string
+          id?: string
+          invoice_id: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          description?: string
+          id?: string
+          invoice_id?: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          crushing_file_id: string | null
+          id: string
+          invoice_number: string
+          issued_at: string | null
+          notes: string | null
+          paid: number
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          tax: number
+          total: number
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          crushing_file_id?: string | null
+          id?: string
+          invoice_number: string
+          issued_at?: string | null
+          notes?: string | null
+          paid?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          crushing_file_id?: string | null
+          id?: string
+          invoice_number?: string
+          issued_at?: string | null
+          notes?: string | null
+          paid?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_crushing_file_id_fkey"
+            columns: ["crushing_file_id"]
+            isOneToOne: false
+            referencedRelation: "crushing_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_logs: {
+        Row: {
+          body: string
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          error: string | null
+          id: string
+          recipient: string
+          reference_id: string | null
+          reference_type: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["notification_status"]
+          template_code: string | null
+        }
+        Insert: {
+          body: string
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          error?: string | null
+          id?: string
+          recipient: string
+          reference_id?: string | null
+          reference_type?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          template_code?: string | null
+        }
+        Update: {
+          body?: string
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          error?: string | null
+          id?: string
+          recipient?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          template_code?: string | null
+        }
+        Relationships: []
+      }
+      notification_templates: {
+        Row: {
+          body: string
+          channel: Database["public"]["Enums"]["notification_channel"]
+          code: string
+          id: string
+          is_active: boolean
+          language: string
+          subject: string | null
+        }
+        Insert: {
+          body: string
+          channel: Database["public"]["Enums"]["notification_channel"]
+          code: string
+          id?: string
+          is_active?: boolean
+          language: string
+          subject?: string | null
+        }
+        Update: {
+          body?: string
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          code?: string
+          id?: string
+          is_active?: boolean
+          language?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_by: string | null
+          id: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          paid_at: string
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          paid_at?: string
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          paid_at?: string
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_records: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          crushing_file_id: string
+          duration_minutes: number | null
+          id: string
+          input_kg: number
+          line_id: string | null
+          losses_kg: number
+          notes: string | null
+          oil_kg: number
+          operator_ids: string[]
+          pomace_kg: number
+          yield_percent: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          crushing_file_id: string
+          duration_minutes?: number | null
+          id?: string
+          input_kg?: number
+          line_id?: string | null
+          losses_kg?: number
+          notes?: string | null
+          oil_kg?: number
+          operator_ids?: string[]
+          pomace_kg?: number
+          yield_percent?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          crushing_file_id?: string
+          duration_minutes?: number | null
+          id?: string
+          input_kg?: number
+          line_id?: string | null
+          losses_kg?: number
+          notes?: string | null
+          oil_kg?: number
+          operator_ids?: string[]
+          pomace_kg?: number
+          yield_percent?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_records_crushing_file_id_fkey"
+            columns: ["crushing_file_id"]
+            isOneToOne: false
+            referencedRelation: "crushing_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_line_id_fkey"
+            columns: ["line_id"]
+            isOneToOne: false
+            referencedRelation: "crushing_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string | null
+          preferred_language: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string
+          id: string
+          is_active?: boolean
+          phone?: string | null
+          preferred_language?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          preferred_language?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      stock_lots: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          crushing_file_id: string | null
+          id: string
+          kind: Database["public"]["Enums"]["stock_kind"]
+          lot_code: string
+          notes: string | null
+          quantity_kg: number
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          crushing_file_id?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["stock_kind"]
+          lot_code: string
+          notes?: string | null
+          quantity_kg?: number
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          crushing_file_id?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["stock_kind"]
+          lot_code?: string
+          notes?: string | null
+          quantity_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_lots_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_crushing_file_id_fkey"
+            columns: ["crushing_file_id"]
+            isOneToOne: false
+            referencedRelation: "crushing_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          lot_id: string
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          quantity_kg: number
+          reason: string | null
+          reference_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lot_id: string
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          quantity_kg: number
+          reason?: string | null
+          reference_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lot_id?: string
+          movement_type?: Database["public"]["Enums"]["stock_movement_type"]
+          quantity_kg?: number
+          reason?: string | null
+          reference_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "stock_lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          plate: string
+          vehicle_type: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          plate: string
+          vehicle_type?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          plate?: string
+          vehicle_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weighings: {
+        Row: {
+          arrival_id: string
+          created_at: string
+          id: string
+          is_corrected: boolean
+          kind: Database["public"]["Enums"]["weighing_kind"]
+          manual_reason: string | null
+          performed_at: string
+          performed_by: string | null
+          source: Database["public"]["Enums"]["weighing_source"]
+          weight_kg: number
+        }
+        Insert: {
+          arrival_id: string
+          created_at?: string
+          id?: string
+          is_corrected?: boolean
+          kind: Database["public"]["Enums"]["weighing_kind"]
+          manual_reason?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          source?: Database["public"]["Enums"]["weighing_source"]
+          weight_kg: number
+        }
+        Update: {
+          arrival_id?: string
+          created_at?: string
+          id?: string
+          is_corrected?: boolean
+          kind?: Database["public"]["Enums"]["weighing_kind"]
+          manual_reason?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          source?: Database["public"]["Enums"]["weighing_source"]
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weighings_arrival_id_fkey"
+            columns: ["arrival_id"]
+            isOneToOne: false
+            referencedRelation: "arrivals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "admin"
+        | "superviseur"
+        | "peseur"
+        | "operateur"
+        | "caisse"
+        | "public_display"
+      arrival_status: "open" | "routed" | "closed" | "cancelled"
+      crushing_status:
+        | "queued"
+        | "assigned"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+      invoice_status: "draft" | "issued" | "partial" | "paid" | "cancelled"
+      line_status: "available" | "busy" | "maintenance" | "offline"
+      notification_channel: "whatsapp" | "sms"
+      notification_status: "pending" | "sent" | "failed"
+      payment_method: "cash" | "transfer" | "card" | "other"
+      priority_level: "normal" | "high" | "urgent"
+      service_type: "weigh_simple" | "weigh_double" | "crushing"
+      stock_kind:
+        | "client_olives"
+        | "client_oil"
+        | "own_oil"
+        | "pomace"
+        | "byproduct"
+      stock_movement_type: "in" | "out" | "adjustment"
+      weighing_kind: "simple" | "first" | "second"
+      weighing_source: "scale" | "manual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +958,40 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "admin",
+        "superviseur",
+        "peseur",
+        "operateur",
+        "caisse",
+        "public_display",
+      ],
+      arrival_status: ["open", "routed", "closed", "cancelled"],
+      crushing_status: [
+        "queued",
+        "assigned",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+      invoice_status: ["draft", "issued", "partial", "paid", "cancelled"],
+      line_status: ["available", "busy", "maintenance", "offline"],
+      notification_channel: ["whatsapp", "sms"],
+      notification_status: ["pending", "sent", "failed"],
+      payment_method: ["cash", "transfer", "card", "other"],
+      priority_level: ["normal", "high", "urgent"],
+      service_type: ["weigh_simple", "weigh_double", "crushing"],
+      stock_kind: [
+        "client_olives",
+        "client_oil",
+        "own_oil",
+        "pomace",
+        "byproduct",
+      ],
+      stock_movement_type: ["in", "out", "adjustment"],
+      weighing_kind: ["simple", "first", "second"],
+      weighing_source: ["scale", "manual"],
+    },
   },
 } as const
