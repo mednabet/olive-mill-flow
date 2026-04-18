@@ -121,11 +121,14 @@ export function ScaleInput({
           <div className="flex items-center gap-2 text-xs">
             <span className={cn("h-2 w-2 rounded-full", STATUS_DOT[reader.status])} />
             <span className="font-medium">{statusLabel[reader.status]}</span>
+            {scaleName && (
+              <span className="text-muted-foreground">· {scaleName}</span>
+            )}
             {reader.status === "connected" && (
               <span
                 className={cn(
                   "rounded px-1.5 py-0.5 text-[10px] font-bold",
-                  reader.stable ? "bg-success/20 text-success" : "bg-amber-500/20 text-amber-700",
+                  reader.stable ? "bg-success/20 text-success" : "bg-warning/20 text-warning-foreground",
                 )}
               >
                 {reader.stable ? t("weigh.scale_stable") : t("weigh.scale_unstable")}
