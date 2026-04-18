@@ -802,6 +802,16 @@ export type Database = {
       }
       next_arrival_ticket: { Args: never; Returns: string }
       next_client_code: { Args: never; Returns: string }
+      next_crushing_code: { Args: never; Returns: string }
+      next_invoice_number: { Args: never; Returns: string }
+      next_lot_code: {
+        Args: { _kind: Database["public"]["Enums"]["stock_kind"] }
+        Returns: string
+      }
+      recalc_invoice_totals: {
+        Args: { _invoice_id: string }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
