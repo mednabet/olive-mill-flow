@@ -172,7 +172,7 @@ function ArrivalsPage() {
       ) : (
         <ul className="space-y-2">
           {filtered.map((a) => (
-            <ArrivalRow key={a.id} arrival={a} onPrint={() => setPrintArrival(a)} />
+            <ArrivalRow key={a.id} arrival={a} />
           ))}
         </ul>
       )}
@@ -180,15 +180,9 @@ function ArrivalsPage() {
       <NewArrivalDialog
         open={showNew}
         onOpenChange={setShowNew}
-        onCreated={(a) => {
-          setPrintArrival(a);
+        onCreated={() => {
           setShowNew(false);
         }}
-      />
-
-      <PrintTicketDialog
-        arrival={printArrival}
-        onClose={() => setPrintArrival(null)}
       />
     </div>
   );
