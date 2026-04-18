@@ -14,7 +14,6 @@ import {
   PackageOpen,
   Plus,
   Search,
-  Printer,
   Scale,
   Factory,
   Ban,
@@ -29,7 +28,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { ClientPicker } from "@/components/clients/ClientPicker";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
-import { ArrivalTicket } from "@/components/arrivals/ArrivalTicket";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,7 +77,6 @@ function ArrivalsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"today" | "all">("today");
   const [showNew, setShowNew] = useState(false);
-  const [printArrival, setPrintArrival] = useState<EnrichedArrival | null>(null);
 
   const { data: arrivals, isLoading } = useQuery({
     queryKey: ["arrivals", filter],
@@ -173,7 +171,7 @@ function ArrivalsPage() {
       ) : (
         <ul className="space-y-2">
           {filtered.map((a) => (
-            <ArrivalRow key={a.id} arrival={a} onPrint={() => setPrintArrival(a)} />
+            <ArrivalRow key={a.id} arrival={a} />
           ))}
         </ul>
       )}
@@ -181,15 +179,9 @@ function ArrivalsPage() {
       <NewArrivalDialog
         open={showNew}
         onOpenChange={setShowNew}
-        onCreated={(a) => {
-          setPrintArrival(a);
+        onCreated={() => {
           setShowNew(false);
         }}
-      />
-
-      <PrintTicketDialog
-        arrival={printArrival}
-        onClose={() => setPrintArrival(null)}
       />
     </div>
   );
@@ -221,7 +213,7 @@ const STATUS_COLOR: Record<ArrivalStatus, string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
-function ArrivalRow({ arrival, onPrint }: { arrival: EnrichedArrival; onPrint: () => void }) {
+function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
   const { t, locale } = useI18n();
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -291,10 +283,6 @@ function ArrivalRow({ arrival, onPrint }: { arrival: EnrichedArrival; onPrint: (
           </div>
 
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={onPrint}>
-              <Printer className="me-1 h-4 w-4" />
-              {t("common.print")}
-            </Button>
             {!isCancelled && arrival.service_type !== "crushing" && (
               <Button
                 variant="ghost"
@@ -336,7 +324,7 @@ function NewArrivalDialog({
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  onCreated: (a: EnrichedArrival) => void;
+  onCreated: () => void;
 }) {
   const { t } = useI18n();
   const { user } = useAuth();
@@ -399,7 +387,7 @@ function NewArrivalDialog({
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success(t("arrival.created_success", data.ticket_number));
       reset();
-      onCreated(data);
+      onCreated();
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -532,44 +520,3 @@ function NewArrivalDialog({
   );
 }
 
-/* ────────────────────────────────────────────────────────── */
-/* Dialog : aperçu et impression du ticket                    */
-/* ────────────────────────────────────────────────────────── */
-
-function PrintTicketDialog({
-  arrival,
-  onClose,
-}: {
-  arrival: EnrichedArrival | null;
-  onClose: () => void;
-}) {
-  const { t } = useI18n();
-
-  return (
-    <Dialog open={!!arrival} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("arrival.print_ticket")}</DialogTitle>
-        </DialogHeader>
-        {arrival && (
-          <div className="py-2">
-            <ArrivalTicket
-              arrival={arrival}
-              client={arrival.client}
-              vehicle={arrival.vehicle}
-            />
-          </div>
-        )}
-        <DialogFooter className="no-print">
-          <Button variant="ghost" onClick={onClose}>
-            {t("common.close")}
-          </Button>
-          <Button onClick={() => window.print()}>
-            <Printer className="me-1 h-4 w-4" />
-            {t("common.print")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
