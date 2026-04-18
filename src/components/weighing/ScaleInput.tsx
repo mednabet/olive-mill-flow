@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/lib/i18n";
-import { useScaleConfig } from "@/lib/settings";
 import { useScaleReader, type ScaleStatus } from "@/hooks/useScaleReader";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +31,10 @@ interface Props {
   reason: string;
   onReasonChange: (r: string) => void;
   allowManual: boolean;
+  /** URL WebSocket de la balance sélectionnée (null = aucune balance choisie) */
+  scaleUrl: string | null;
+  /** Nom de la balance sélectionnée pour l'affichage */
+  scaleName?: string | null;
   autoFocus?: boolean;
   label?: string;
 }
@@ -51,13 +54,13 @@ export function ScaleInput({
   reason,
   onReasonChange,
   allowManual,
+  scaleUrl,
+  scaleName,
   autoFocus,
   label,
 }: Props) {
   const { t } = useI18n();
-  const { data: config } = useScaleConfig();
-  const url = config?.url ?? "";
-  const reader = useScaleReader(source === "scale" ? url : null);
+  const reader = useScaleReader(source === "scale" ? scaleUrl : null);
 
   // Si lecture stable & source scale → pré-remplir au survol mais NE PAS écraser une saisie manuelle
   useEffect(() => {
