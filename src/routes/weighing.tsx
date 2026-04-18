@@ -424,6 +424,8 @@ function WeighingDialog({
             reason={reason}
             onReasonChange={setReason}
             allowManual={allowManual}
+            scaleUrl={scaleUrl}
+            scaleName={scaleName}
             autoFocus
           />
         </div>
