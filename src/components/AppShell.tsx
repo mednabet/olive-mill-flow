@@ -19,7 +19,7 @@ import {
   LogOut,
   Droplets,
   UserCircle,
-  Sprout,
+  Package,
 } from "lucide-react";
 import { useAuth, type AppRole } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
@@ -43,7 +43,7 @@ const NAV: NavItem[] = [
   { to: "/production", label: "nav.production", icon: Factory, roles: ["admin", "superviseur", "operateur"] },
   { to: "/stocks", label: "nav.stocks", icon: Boxes, roles: ["admin", "superviseur", "operateur"] },
   { to: "/clients", label: "nav.clients", icon: Users, roles: ["admin", "superviseur", "peseur", "caisse"] },
-  { to: "/varieties", label: "nav.varieties", icon: Sprout, roles: ["admin", "superviseur", "peseur", "operateur", "caisse"] },
+  { to: "/products", label: "nav.products", icon: Package, roles: ["admin", "superviseur", "peseur", "operateur", "caisse"] },
   { to: "/invoices", label: "nav.invoices", icon: Receipt, roles: ["admin", "superviseur", "caisse"] },
   { to: "/public-display", label: "nav.public_display", icon: Monitor, roles: ["admin", "superviseur"] },
   { to: "/admin/users", label: "nav.users", icon: Shield, roles: ["admin"] },

@@ -31,7 +31,7 @@ import {
 
 type Variety = Database["public"]["Tables"]["olive_varieties"]["Row"];
 
-export const Route = createFileRoute("/varieties")({
+export const Route = createFileRoute("/products")({
   component: () => (
     <RequireRole roles={["admin", "superviseur", "peseur", "operateur", "caisse"]}>
       <VarietiesPage />
