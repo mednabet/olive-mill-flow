@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle, Factory } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -108,8 +108,8 @@ function WeighingListPage() {
           : a.weighings.length === 0;
       if (statusFilter === "pending" && !isPending) continue;
       c.all += 1;
-      if (a.service_type === "crushing") c.crushing += 1;
-      else if (a.service_type === "weigh_simple") c.weigh_simple += 1;
+      if (a.needs_crushing) c.crushing += 1;
+      if (a.service_type === "weigh_simple") c.weigh_simple += 1;
       else if (a.service_type === "weigh_double") c.weigh_double += 1;
     }
     return c;
@@ -120,12 +120,13 @@ function WeighingListPage() {
     let list = arrivals;
     if (statusFilter === "pending") {
       list = list.filter((a) => {
-        if (a.service_type === "weigh_simple") return a.weighings.length === 0;
         if (a.service_type === "weigh_double") return a.weighings.length < 2;
         return a.weighings.length === 0;
       });
     }
-    if (serviceTab !== "all") {
+    if (serviceTab === "crushing") {
+      list = list.filter((a) => a.needs_crushing);
+    } else if (serviceTab !== "all") {
       list = list.filter((a) => a.service_type === serviceTab);
     }
     const q = search.trim().toLowerCase();
@@ -236,7 +237,7 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
   const first = arrival.weighings.find((w) => w.kind === "first");
   const second = arrival.weighings.find((w) => w.kind === "second");
   const isDouble = arrival.service_type === "weigh_double";
-  const isCrushing = arrival.service_type === "crushing";
+  const isCrushing = arrival.needs_crushing;
   const net =
     simple?.weight_kg ??
     (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
@@ -259,7 +260,17 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
               <StatusBadge tone={fullyDone ? "success" : "warning"}>
                 {fullyDone ? t("common.success") : t("weigh.no_weight_yet")}
               </StatusBadge>
-              {isDouble && <StatusBadge tone="info">{t("weigh.kind.first")}/{t("weigh.kind.second")}</StatusBadge>}
+              {isDouble ? (
+                <StatusBadge tone="info">{t("weigh.kind.first")}/{t("weigh.kind.second")}</StatusBadge>
+              ) : (
+                <StatusBadge tone="info">{t("weigh.kind.simple")}</StatusBadge>
+              )}
+              {isCrushing && (
+                <StatusBadge tone="info">
+                  <Factory className="me-1 inline h-3 w-3" />
+                  {t("nav.crushing")}
+                </StatusBadge>
+              )}
               {isCrushing && arrival.product && (
                 <span
                   className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
