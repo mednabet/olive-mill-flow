@@ -130,7 +130,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       if (error) throw error;
       return data ?? [];
     },
-    enabled: arrival?.service_type === "crushing",
+    enabled: arrival?.needs_crushing === true,
   });
 
   const setProduct = useMutation({
@@ -210,7 +210,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const save = useMutation({
     mutationFn: async () => {
       if (!arrival) throw new Error("no arrival");
-      if (arrival.service_type === "crushing" && !arrival.product_id) {
+      if (arrival.needs_crushing && !arrival.product_id) {
         throw new Error(t("weigh.product_required"));
       }
       const w = parseFloat(weight);
@@ -260,7 +260,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       if (fullyWeighed) {
         await supabase.from("arrivals").update({ status: "routed" }).eq("id", arrival.id);
 
-        if (arrival.service_type === "crushing") {
+        if (arrival.needs_crushing) {
           const k: WeighingKind = kind;
           const simpleW =
             arrival.weighings.find((x) => x.kind === "simple")?.weight_kg ??
@@ -449,7 +449,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
           </CardContent>
         </Card>
       )}
-      {arrival.service_type === "crushing" && (
+      {arrival.needs_crushing && (
         <Card>
           <CardContent className="space-y-2 p-4">
             <div className="flex items-center justify-between gap-2">
@@ -610,7 +610,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                 disabled={
                   save.isPending ||
                   !weight ||
-                  (arrival.service_type === "crushing" && !arrival.product_id)
+                  (arrival.needs_crushing && !arrival.product_id)
                 }
               >
                 {t("weigh.save")}
