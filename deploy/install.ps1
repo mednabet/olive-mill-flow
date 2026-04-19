@@ -10,7 +10,9 @@ param(
     [string]$DbUser = "oliveapp_user",
     [switch]$SkipPrereqs,
     [switch]$SkipPostgres,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$SkipPostgrest,
+    [int]$PostgrestPort = 3000
 )
 
 $ErrorActionPreference = "Stop"
@@ -59,7 +61,7 @@ $ScriptsDir = Join-Path $DeployRoot "scripts"
 
 try {
     if (-not $SkipPrereqs) {
-        Write-Step "1/5 - Installation des prerequis (IIS, URL Rewrite, Node)"
+        Write-Step "1/6 - Installation des prerequis (IIS, URL Rewrite, Node)"
         & (Join-Path $ScriptsDir "01-prereqs.ps1")
         if ($LASTEXITCODE -ne 0) { throw "Echec installation prerequis" }
         Write-Ok "Prerequis installes"
@@ -68,7 +70,7 @@ try {
     }
 
     if (-not $SkipPostgres) {
-        Write-Step "2/5 - Installation PostgreSQL 16"
+        Write-Step "2/6 - Installation PostgreSQL 16"
         & (Join-Path $ScriptsDir "02-postgres.ps1") -SuperPassword $pgSuperPwd
         if ($LASTEXITCODE -ne 0) { throw "Echec installation PostgreSQL" }
         Write-Ok "PostgreSQL installe"
@@ -76,7 +78,7 @@ try {
         Write-Warn2 "Etape PostgreSQL ignoree (-SkipPostgres)"
     }
 
-    Write-Step "3/5 - Creation de la base de donnees et application du schema"
+    Write-Step "3/6 - Creation de la base de donnees et application du schema"
     & (Join-Path $ScriptsDir "03-database.ps1") `
         -SuperPassword $pgSuperPwd `
         -AppPassword $appUserPwd `
@@ -86,7 +88,7 @@ try {
     Write-Ok "Base $DbName prete"
 
     if (-not $SkipBuild) {
-        Write-Step "4/5 - Build du frontend"
+        Write-Step "4/6 - Build du frontend"
         & (Join-Path $ScriptsDir "04-build.ps1") `
             -ProjectRoot (Split-Path -Parent $DeployRoot) `
             -ApiUrl $apiUrl
@@ -96,7 +98,7 @@ try {
         Write-Warn2 "Etape build ignoree (-SkipBuild)"
     }
 
-    Write-Step "5/5 - Configuration IIS"
+    Write-Step "5/6 - Configuration IIS"
     & (Join-Path $ScriptsDir "05-iis-site.ps1") `
         -SiteName $SiteName `
         -HttpPort $HttpPort `
@@ -104,6 +106,18 @@ try {
         -ProjectRoot (Split-Path -Parent $DeployRoot)
     if ($LASTEXITCODE -ne 0) { throw "Echec configuration IIS" }
     Write-Ok "Site IIS '$SiteName' deploye"
+
+    if (-not $SkipPostgrest) {
+        Write-Step "6/6 - Installation PostgREST (API REST locale)"
+        & (Join-Path $ScriptsDir "06-postgrest.ps1") `
+            -SuperPassword $pgSuperPwd `
+            -DbName $DbName `
+            -Port $PostgrestPort
+        if ($LASTEXITCODE -ne 0) { throw "Echec installation PostgREST" }
+        Write-Ok "PostgREST deploye sur le port $PostgrestPort"
+    } else {
+        Write-Warn2 "Etape PostgREST ignoree (-SkipPostgrest)"
+    }
 
     Write-Step "Termine"
     Write-Host ""
