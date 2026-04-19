@@ -4,9 +4,9 @@
  *  - Autorisé uniquement si l'arrivée n'est pas rattachée à un dossier d'écrasement
  *    en cours/terminé (statut autorisé : queued ou assigned, ou pas de dossier).
  *  - Motif obligatoire (audit).
- *  - Met à jour weighings.weight_kg + weighings.is_corrected = true.
+ *  - Récupération du nouveau poids : balance (live) ou manuel, comme pour un pesage normal.
+ *  - Met à jour weighings.weight_kg + weighings.is_corrected = true + source.
  *  - Recalcule la ligne crushing_file_arrivals (gross/tare/net) si rattachement.
- *    Le trigger DB recalcule alors les totaux du dossier.
  *  - Crée un mouvement de stock 'adjustment' équivalent au delta (si lot existe).
  *  - Trace l'opération dans audit_logs.
  */
@@ -27,10 +27,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatKg } from "@/lib/format";
+import { ScaleInput, type WeighingSourceUI } from "@/components/weighing/ScaleInput";
 
 type Weighing = Database["public"]["Tables"]["weighings"]["Row"];
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
@@ -42,6 +42,12 @@ interface Props {
   arrival: Pick<Arrival, "id" | "ticket_number" | "service_type">;
   /** Tous les pesages de l'arrivée (pour recalcul gross/tare/net) */
   allWeighings: Weighing[];
+  /** Contexte balance (identique au pesage normal) */
+  allowManual: boolean;
+  scaleUrl: string | null;
+  scalePollIntervalMs?: number;
+  scaleName?: string | null;
+  scaleId?: string | null;
 }
 
 export function EditWeighingDialog({
@@ -50,19 +56,29 @@ export function EditWeighingDialog({
   weighing,
   arrival,
   allWeighings,
+  allowManual,
+  scaleUrl,
+  scalePollIntervalMs,
+  scaleName,
+  scaleId,
 }: Props) {
   const { t } = useI18n();
   const { user } = useAuth();
   const qc = useQueryClient();
   const [weight, setWeight] = useState(String(weighing.weight_kg));
+  const [source, setSource] = useState<WeighingSourceUI>("manual");
+  const [scaleReason, setScaleReason] = useState("");
   const [reason, setReason] = useState("");
 
   useEffect(() => {
     if (open) {
       setWeight(String(weighing.weight_kg));
+      // Démarre en mode balance si une balance est dispo, sinon manuel.
+      setSource(scaleUrl ? "scale" : "manual");
+      setScaleReason("");
       setReason("");
     }
-  }, [open, weighing.weight_kg]);
+  }, [open, weighing.weight_kg, scaleUrl]);
 
   const delta = useMemo(() => {
     const w = parseFloat(weight);
@@ -75,10 +91,12 @@ export function EditWeighingDialog({
       const newW = parseFloat(weight);
       if (!Number.isFinite(newW) || newW < 0) throw new Error(t("validation.positive"));
       if (!reason.trim()) throw new Error(t("weigh.edit_reason_required"));
+      if (source === "manual" && !allowManual) throw new Error(t("weigh.manual_disabled"));
+      if (source === "manual" && !scaleReason.trim())
+        throw new Error(t("weigh.manual_reason_required"));
       if (newW === weighing.weight_kg) throw new Error(t("weigh.edit_no_change"));
 
-      // 1) Vérifier l'éligibilité : si lié à un dossier (cfa OU crushing_files.arrival_id),
-      //    refuser si statut != queued/assigned.
+      // 1) Vérifier l'éligibilité
       const { data: cfaLink } = await supabase
         .from("crushing_file_arrivals")
         .select("id, crushing_file_id")
@@ -108,10 +126,16 @@ export function EditWeighingDialog({
         }
       }
 
-      // 2) Mettre à jour le pesage
+      // 2) Mettre à jour le pesage (avec source + scale_id + manual_reason)
       const { error: updErr } = await supabase
         .from("weighings")
-        .update({ weight_kg: newW, is_corrected: true })
+        .update({
+          weight_kg: newW,
+          is_corrected: true,
+          source: source === "scale" ? "scale" : "manual",
+          scale_id: source === "scale" ? scaleId ?? null : null,
+          manual_reason: source === "manual" ? scaleReason.trim() : null,
+        })
         .eq("id", weighing.id);
       if (updErr) throw updErr;
 
@@ -128,7 +152,7 @@ export function EditWeighingDialog({
         const netKg =
           sim?.weight_kg ??
           (grossKg !== null && tareKg !== null
-            ? Math.max(0, grossKg - tareKg)
+            ? Math.abs(grossKg - tareKg)
             : null);
 
         const { error: cfaErr } = await supabase
@@ -141,7 +165,6 @@ export function EditWeighingDialog({
           .eq("id", cfaLink.id);
         if (cfaErr) throw cfaErr;
 
-        // Mouvement d'ajustement de stock (delta sur le net)
         if (targetFileId) {
           const { data: lot } = await supabase
             .from("stock_lots")
@@ -150,7 +173,6 @@ export function EditWeighingDialog({
             .eq("kind", "client_olives")
             .maybeSingle();
           if (lot) {
-            // Calcul du delta sur le net : on relit l'ancien net cfa
             const oldGross =
               (sim ? weighing.kind === "simple" ? weighing.weight_kg : sim.weight_kg : null) ??
               (s ? weighing.kind === "second" ? weighing.weight_kg : s.weight_kg : null) ??
@@ -166,7 +188,7 @@ export function EditWeighingDialog({
                   ? weighing.weight_kg
                   : (sim?.weight_kg ?? null)
                 : oldGross !== null && oldTare !== null
-                  ? Math.max(0, oldGross - oldTare)
+                  ? Math.abs(oldGross - oldTare)
                   : null;
             const netDelta =
               netKg !== null && oldNet !== null ? netKg - oldNet : 0;
@@ -192,7 +214,12 @@ export function EditWeighingDialog({
         user_id: user?.id ?? null,
         reason: reason.trim(),
         old_values: { weight_kg: weighing.weight_kg, kind: weighing.kind },
-        new_values: { weight_kg: newW, kind: weighing.kind, ticket: arrival.ticket_number },
+        new_values: {
+          weight_kg: newW,
+          kind: weighing.kind,
+          ticket: arrival.ticket_number,
+          source,
+        },
       });
     },
     onSuccess: async () => {
@@ -211,7 +238,7 @@ export function EditWeighingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="h-4 w-4" />
@@ -224,30 +251,31 @@ export function EditWeighingDialog({
             </span>
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="new-weight">{t("weigh.new_weight")}</Label>
-            <Input
-              id="new-weight"
-              type="number"
-              inputMode="decimal"
-              step="0.001"
-              min="0"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              className="font-mono tabular text-lg"
-              autoFocus
-            />
-            {delta !== 0 && Number.isFinite(delta) && (
-              <div
-                className={`text-xs tabular ${delta > 0 ? "text-success" : "text-destructive"}`}
-              >
-                Δ {delta > 0 ? "+" : ""}
-                {formatKg(delta)}
-              </div>
-            )}
-          </div>
-          <div className="space-y-1">
+        <div className="space-y-4">
+          <ScaleInput
+            value={weight}
+            onChange={setWeight}
+            source={source}
+            onSourceChange={setSource}
+            reason={scaleReason}
+            onReasonChange={setScaleReason}
+            allowManual={allowManual}
+            scaleUrl={scaleUrl}
+            scalePollIntervalMs={scalePollIntervalMs}
+            scaleName={scaleName}
+            label={t("weigh.new_weight")}
+          />
+
+          {delta !== 0 && Number.isFinite(delta) && (
+            <div
+              className={`text-xs tabular ${delta > 0 ? "text-success" : "text-destructive"}`}
+            >
+              Δ {delta > 0 ? "+" : ""}
+              {formatKg(delta)}
+            </div>
+          )}
+
+          <div className="space-y-1.5">
             <Label htmlFor="edit-reason">
               {t("weigh.edit_reason")} <span className="text-destructive">*</span>
             </Label>
@@ -256,7 +284,7 @@ export function EditWeighingDialog({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={t("weigh.edit_reason_placeholder")}
-              rows={3}
+              rows={2}
             />
           </div>
         </div>
