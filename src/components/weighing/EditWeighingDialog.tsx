@@ -295,7 +295,7 @@ export function EditWeighingDialog({
           </Button>
           <Button
             onClick={() => update.mutate()}
-            disabled={update.isPending || !weight || !reason.trim()}
+            disabled={update.isPending || !weight}
           >
             {t("common.save")}
           </Button>
