@@ -59,10 +59,25 @@ type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
 type ServiceType = Database["public"]["Enums"]["service_type"];
 type ArrivalStatus = Database["public"]["Enums"]["arrival_status"];
 
+type Product = {
+  id: string;
+  code: string;
+  name: string;
+  name_ar: string | null;
+  category: "olive" | "oil" | "byproduct" | "service";
+  color: string | null;
+  is_active: boolean;
+};
+
 interface EnrichedArrival extends Arrival {
   client: Client | null;
   vehicle: Vehicle | null;
+  product: Product | null;
 }
+
+// Bypass typing en attendant la régénération des types Supabase (colonne product_id)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sb: any = supabase;
 
 export const Route = createFileRoute("/arrivals")({
   component: () => (
@@ -81,9 +96,9 @@ function ArrivalsPage() {
   const { data: arrivals, isLoading } = useQuery({
     queryKey: ["arrivals", filter],
     queryFn: async () => {
-      let q = supabase
+      let q = sb
         .from("arrivals")
-        .select("*, client:clients(*), vehicle:vehicles(*)")
+        .select("*, client:clients(*), vehicle:vehicles(*), product:products(*)")
         .order("created_at", { ascending: false })
         .limit(200);
       if (filter === "today") {
@@ -256,6 +271,18 @@ function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
               <Badge variant="secondary" className="text-xs">
                 {t(SERVICE_LABEL[arrival.service_type])}
               </Badge>
+              {arrival.product && (
+                <Badge
+                  variant="outline"
+                  className="text-xs"
+                  style={{
+                    borderColor: arrival.product.color ?? undefined,
+                    color: arrival.product.color ?? undefined,
+                  }}
+                >
+                  {arrival.product.name}
+                </Badge>
+              )}
             </div>
             <div className="mt-1 truncate text-sm">
               {arrival.client ? (
@@ -332,6 +359,7 @@ function NewArrivalDialog({
   const [client, setClient] = useState<Client | null>(null);
   const [vehicleId, setVehicleId] = useState<string>("");
   const [serviceType, setServiceType] = useState<ServiceType>("weigh_simple");
+  const [productId, setProductId] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [showNewClient, setShowNewClient] = useState(false);
 
@@ -339,6 +367,7 @@ function NewArrivalDialog({
     setClient(null);
     setVehicleId("");
     setServiceType("weigh_simple");
+    setProductId("");
     setNotes("");
   };
 
@@ -358,6 +387,22 @@ function NewArrivalDialog({
     enabled: !!client,
   });
 
+  // Catalogue produits actifs (variétés d'olives) pour l'écrasement
+  const { data: products } = useQuery({
+    queryKey: ["products", "olive", "active"],
+    queryFn: async () => {
+      const { data, error } = await sb
+        .from("products")
+        .select("id, code, name, name_ar, category, color, is_active")
+        .eq("category", "olive")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data as Product[];
+    },
+    enabled: open,
+  });
+
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!client) throw new Error(t("arrival.client_required"));
@@ -368,18 +413,19 @@ function NewArrivalDialog({
       if (ticketErr) throw ticketErr;
       const ticket = ticketData as string;
 
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from("arrivals")
         .insert({
           ticket_number: ticket,
           client_id: client.id,
           vehicle_id: vehicleId || null,
           service_type: serviceType,
+          product_id: serviceType === "crushing" && productId ? productId : null,
           notes: notes.trim() || null,
           created_by: user?.id ?? null,
           status: "open",
         })
-        .select("*, client:clients(*), vehicle:vehicles(*)")
+        .select("*, client:clients(*), vehicle:vehicles(*), product:products(*)")
         .single();
       if (error) throw error;
       return data as unknown as EnrichedArrival;
@@ -484,7 +530,39 @@ function NewArrivalDialog({
               </div>
             </div>
 
-            {/* Notes */}
+            {/* Produit (variété d'olive) — visible uniquement pour l'écrasement */}
+            {serviceType === "crushing" && (
+              <div className="space-y-1.5">
+                <Label>
+                  {t("arrival.product")}{" "}
+                  <span className="text-xs text-muted-foreground">({t("common.optional")})</span>
+                </Label>
+                <Select
+                  value={productId || "__none"}
+                  onValueChange={(v) => setProductId(v === "__none" ? "" : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("arrival.product_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">{t("arrival.no_product")}</SelectItem>
+                    {products?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <span
+                          className="me-2 inline-block h-2 w-2 rounded-full align-middle"
+                          style={{ backgroundColor: p.color ?? "#84cc16" }}
+                        />
+                        {p.name}
+                        <span className="ms-2 font-mono text-xs text-muted-foreground tabular">
+                          {p.code}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label htmlFor="notes">
                 {t("common.notes")}{" "}

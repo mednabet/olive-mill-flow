@@ -22,6 +22,7 @@ export type Database = {
           created_by: string | null
           id: string
           notes: string | null
+          product_id: string | null
           service_type: Database["public"]["Enums"]["service_type"]
           status: Database["public"]["Enums"]["arrival_status"]
           ticket_number: string
@@ -34,6 +35,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           notes?: string | null
+          product_id?: string | null
           service_type: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["arrival_status"]
           ticket_number: string
@@ -46,6 +48,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           notes?: string | null
+          product_id?: string | null
           service_type?: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["arrival_status"]
           ticket_number?: string
@@ -57,6 +60,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arrivals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
