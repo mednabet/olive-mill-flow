@@ -22,6 +22,7 @@ import { Route as CrushingRouteImport } from './routes/crushing'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as ArrivalsRouteImport } from './routes/arrivals'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WeighingArrivalIdRouteImport } from './routes/weighing.$arrivalId'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminScalesRouteImport } from './routes/admin.scales'
@@ -93,6 +94,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WeighingArrivalIdRoute = WeighingArrivalIdRouteImport.update({
+  id: '/$arrivalId',
+  path: '/$arrivalId',
+  getParentRoute: () => WeighingRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/admin/users',
   path: '/admin/users',
@@ -132,12 +138,13 @@ export interface FileRoutesByFullPath {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/weighing': typeof WeighingRoute
+  '/weighing': typeof WeighingRouteWithChildren
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
   '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -152,12 +159,13 @@ export interface FileRoutesByTo {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/weighing': typeof WeighingRoute
+  '/weighing': typeof WeighingRouteWithChildren
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
   '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -173,12 +181,13 @@ export interface FileRoutesById {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/weighing': typeof WeighingRoute
+  '/weighing': typeof WeighingRouteWithChildren
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
   '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
+    | '/weighing/$arrivalId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
+    | '/weighing/$arrivalId'
   id:
     | '__root__'
     | '/'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
+    | '/weighing/$arrivalId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -256,7 +268,7 @@ export interface RootRouteChildren {
   PublicDisplayRoute: typeof PublicDisplayRoute
   QueueRoute: typeof QueueRoute
   StocksRoute: typeof StocksRoute
-  WeighingRoute: typeof WeighingRoute
+  WeighingRoute: typeof WeighingRouteWithChildren
   AdminAuditRoute: typeof AdminAuditRoute
   AdminLinesRoute: typeof AdminLinesRoute
   AdminScalesRoute: typeof AdminScalesRoute
@@ -357,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/weighing/$arrivalId': {
+      id: '/weighing/$arrivalId'
+      path: '/$arrivalId'
+      fullPath: '/weighing/$arrivalId'
+      preLoaderRoute: typeof WeighingArrivalIdRouteImport
+      parentRoute: typeof WeighingRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/admin/users'
@@ -395,6 +414,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface WeighingRouteChildren {
+  WeighingArrivalIdRoute: typeof WeighingArrivalIdRoute
+}
+
+const WeighingRouteChildren: WeighingRouteChildren = {
+  WeighingArrivalIdRoute: WeighingArrivalIdRoute,
+}
+
+const WeighingRouteWithChildren = WeighingRoute._addFileChildren(
+  WeighingRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArrivalsRoute: ArrivalsRoute,
@@ -408,7 +439,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicDisplayRoute: PublicDisplayRoute,
   QueueRoute: QueueRoute,
   StocksRoute: StocksRoute,
-  WeighingRoute: WeighingRoute,
+  WeighingRoute: WeighingRouteWithChildren,
   AdminAuditRoute: AdminAuditRoute,
   AdminLinesRoute: AdminLinesRoute,
   AdminScalesRoute: AdminScalesRoute,
