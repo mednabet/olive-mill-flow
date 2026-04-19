@@ -5,6 +5,7 @@
  * - Dossier(s) d'écrasement liés (via crushing_files.arrival_id et crushing_file_arrivals)
  * - Lots de stock liés (via stock_lots.crushing_file_id du dossier d'écrasement)
  */
+import type { ReactNode } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, PackageOpen, Scale, Factory, Boxes, Printer } from "lucide-react";
@@ -459,7 +460,7 @@ function ArrivalDetailPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <div className="text-xs font-semibold uppercase text-muted-foreground">{label}</div>
@@ -467,4 +468,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
-// touch 1776583536
