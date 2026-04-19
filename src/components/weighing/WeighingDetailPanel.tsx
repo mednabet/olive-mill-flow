@@ -911,6 +911,11 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
             service_type: arrival.service_type,
           }}
           allWeighings={arrival.weighings}
+          allowManual={allowManual}
+          scaleUrl={selectedScale?.websocket_url ?? null}
+          scalePollIntervalMs={selectedScale?.poll_interval_ms ?? 1000}
+          scaleName={selectedScale?.name ?? null}
+          scaleId={selectedScale?.id ?? null}
         />
       )}
     </div>
