@@ -96,9 +96,9 @@ function ArrivalsPage() {
   const { data: arrivals, isLoading } = useQuery({
     queryKey: ["arrivals", filter],
     queryFn: async () => {
-      let q = supabase
+      let q = sb
         .from("arrivals")
-        .select("*, client:clients(*), vehicle:vehicles(*)")
+        .select("*, client:clients(*), vehicle:vehicles(*), product:products(*)")
         .order("created_at", { ascending: false })
         .limit(200);
       if (filter === "today") {
