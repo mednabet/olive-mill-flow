@@ -313,7 +313,7 @@ function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
               <Button
                 variant={arrival.service_type === "crushing" ? "default" : "ghost"}
                 size="sm"
-                onClick={() => navigate({ to: "/weighing" })}
+                onClick={() => navigate({ to: "/weighing", search: { arrival: arrival.id } })}
               >
                 <Scale className="me-1 h-4 w-4" />
                 {arrival.service_type === "crushing" ? t("weigh.title") : t("arrival.go_to_weighing")}
