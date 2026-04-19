@@ -183,17 +183,17 @@ export function NewArrivalDialog({ open, onOpenChange, onCreated }: NewArrivalDi
 
             <div className="space-y-1.5">
               <Label>
-                {t("arrival.service")} <span className="text-destructive">*</span>
+                {t("arrival.weighing_type")} <span className="text-destructive">*</span>
               </Label>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {(["weigh_simple", "weigh_double", "crushing"] as ServiceType[]).map((st) => {
-                  const Icon = SERVICE_ICON[st];
-                  const active = serviceType === st;
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {(["weigh_simple", "weigh_double"] as WeighingType[]).map((wt) => {
+                  const Icon = WEIGHING_ICON[wt];
+                  const active = weighingType === wt;
                   return (
                     <button
-                      key={st}
+                      key={wt}
                       type="button"
-                      onClick={() => setServiceType(st)}
+                      onClick={() => setWeighingType(wt)}
                       className={cn(
                         "flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all",
                         active
@@ -202,11 +202,30 @@ export function NewArrivalDialog({ open, onOpenChange, onCreated }: NewArrivalDi
                       )}
                     >
                       <Icon className="h-6 w-6" />
-                      <span className="text-sm font-medium">{t(SERVICE_LABEL[st])}</span>
+                      <span className="text-sm font-medium">{t(WEIGHING_LABEL[wt])}</span>
                     </button>
                   );
                 })}
               </div>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <label className="flex cursor-pointer items-start gap-3">
+                <Checkbox
+                  checked={needsCrushing}
+                  onCheckedChange={(c) => setNeedsCrushing(c === true)}
+                  className="mt-0.5"
+                />
+                <span className="flex-1 space-y-1">
+                  <span className="flex items-center gap-2 text-sm font-medium">
+                    <Factory className="h-4 w-4 text-primary" />
+                    {t("arrival.needs_crushing")}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t("arrival.needs_crushing_help")}
+                  </span>
+                </span>
+              </label>
             </div>
 
             <div className="space-y-1.5">
