@@ -17,6 +17,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PrintLayout } from "@/components/PrintLayout";
 import { WeighingTicket } from "@/components/weighing/WeighingTicket";
+import { CrushingTicket } from "@/components/crushing/CrushingTicket";
 import { ScaleInput, type WeighingSourceUI } from "@/components/weighing/ScaleInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,8 +76,10 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const { data: allowCancelCfg } = useAllowCancelByPeseur();
 
   const [printOpen, setPrintOpen] = useState(false);
+  const [printCrushingOpen, setPrintCrushingOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
+  const [createdCrushingFileId, setCreatedCrushingFileId] = useState<string | null>(null);
 
   const [weight, setWeight] = useState("");
   const [source, setSource] = useState<WeighingSourceUI>("scale");
@@ -131,6 +134,40 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       return data ?? [];
     },
     enabled: arrival?.needs_crushing === true,
+  });
+
+  // Données du dossier d'écrasement (pour le ticket d'impression / bandeau)
+  const { data: crushingFileData } = useQuery({
+    queryKey: ["crushing-file-for-print", createdCrushingFileId],
+    enabled: !!createdCrushingFileId,
+    queryFn: async () => {
+      if (!createdCrushingFileId) return null;
+      const { data: file, error } = await supabase
+        .from("crushing_files")
+        .select("*, line:crushing_lines!assigned_line_id(*), client:clients(*)")
+        .eq("id", createdCrushingFileId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!file) return null;
+      const { data: links, error: linksErr } = await supabase
+        .from("crushing_file_arrivals")
+        .select("net_weight_kg, arrival:arrivals!arrival_id(ticket_number)")
+        .eq("crushing_file_id", createdCrushingFileId);
+      if (linksErr) throw linksErr;
+      // Si pas de lignes cfa (cas nouveau dossier sans rattachement), construire une ligne fictive avec l'arrivée elle-même
+      const attachedArrivals =
+        links && links.length > 0
+          ? links.map((l) => ({
+              ticket_number:
+                (l.arrival as unknown as { ticket_number: string } | null)
+                  ?.ticket_number ?? "—",
+              net_weight_kg: l.net_weight_kg,
+            }))
+          : arrival
+            ? [{ ticket_number: arrival.ticket_number, net_weight_kg: file.net_weight_kg }]
+            : [];
+      return { file, attachedArrivals };
+    },
   });
 
   const setProduct = useMutation({
@@ -257,6 +294,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       }
 
       let crushingCode: string | null = null;
+      let crushingFileId: string | null = null;
       if (fullyWeighed) {
         await supabase.from("arrivals").update({ status: "routed" }).eq("id", arrival.id);
 
@@ -279,15 +317,61 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               : null);
 
           if (netKg !== null && netKg > 0) {
-            const { data: existing } = await supabase
+            // Cas 1 : déjà rattaché à un dossier existant (cfa) → rien à créer
+            const { data: existingLink } = await supabase
               .from("crushing_files")
               .select("id, tracking_code")
               .eq("arrival_id", arrival.id)
               .maybeSingle();
 
-            if (existing) {
-              crushingCode = existing.tracking_code;
+            if (existingLink) {
+              crushingCode = existingLink.tracking_code;
+              crushingFileId = existingLink.id;
+            } else if (arrival.target_crushing_file_id) {
+              // Cas 2 : pré-rattachement choisi à la création de l'arrivée
+              const { data: targetFile, error: targetErr } = await supabase
+                .from("crushing_files")
+                .select("id, tracking_code")
+                .eq("id", arrival.target_crushing_file_id)
+                .maybeSingle();
+              if (targetErr) throw targetErr;
+
+              if (targetFile) {
+                // Ajout d'une ligne crushing_file_arrivals (le trigger recalcule les totaux du dossier)
+                const { error: cfaErr } = await supabase
+                  .from("crushing_file_arrivals")
+                  .insert({
+                    crushing_file_id: targetFile.id,
+                    arrival_id: arrival.id,
+                    gross_weight_kg: grossKg,
+                    tare_weight_kg: tareKg,
+                    net_weight_kg: netKg,
+                  });
+                if (cfaErr) throw cfaErr;
+
+                // Mouvement de stock sur le lot rattaché au dossier (s'il existe)
+                const { data: lot } = await supabase
+                  .from("stock_lots")
+                  .select("id")
+                  .eq("crushing_file_id", targetFile.id)
+                  .eq("kind", "client_olives")
+                  .maybeSingle();
+                if (lot) {
+                  await supabase.from("stock_movements").insert({
+                    lot_id: lot.id,
+                    movement_type: "in",
+                    quantity_kg: netKg,
+                    reference_id: targetFile.id,
+                    reason: `Pesage arrivée ${arrival.ticket_number} (rattachement)`,
+                    created_by: user?.id ?? null,
+                  });
+                }
+
+                crushingCode = targetFile.tracking_code;
+                crushingFileId = targetFile.id;
+              }
             } else {
+              // Cas 3 : création d'un nouveau dossier
               const { data: codeData, error: codeErr } = await supabase.rpc(
                 "next_crushing_code",
               );
@@ -311,6 +395,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                 .single();
               if (cfErr) throw cfErr;
               crushingCode = code;
+              crushingFileId = cf.id;
 
               const { data: lotCode, error: lotCodeErr } = await supabase.rpc(
                 "next_lot_code",
@@ -345,9 +430,9 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
           }
         }
       }
-      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode, toastNet };
+      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode, crushingFileId, toastNet, attached: !!arrival.target_crushing_file_id };
     },
-    onSuccess: async ({ fullyWeighed, crushingCode, toastNet }) => {
+    onSuccess: async ({ fullyWeighed, crushingCode, crushingFileId, toastNet, attached }) => {
       await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
       await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
       await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -356,13 +441,19 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       await qc.invalidateQueries({ queryKey: ["stock-lots"] });
       reset();
       if (fullyWeighed) {
-        if (crushingCode) {
+        if (crushingCode && crushingFileId) {
           setCreatedCrushingCode(crushingCode);
-          toast.success(t("weigh.crushing_created", crushingCode));
+          setCreatedCrushingFileId(crushingFileId);
+          toast.success(
+            attached
+              ? t("weigh.crushing_attached", crushingCode)
+              : t("weigh.crushing_created", crushingCode),
+          );
+          setPrintCrushingOpen(true);
         } else {
           toast.success(t("weigh.second_done", toastNet !== null ? formatKg(toastNet) : ""));
+          setPrintOpen(true);
         }
-        setPrintOpen(true);
       } else {
         toast.success(t("weigh.first_done"));
       }
@@ -437,15 +528,25 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-success" />
               <div>
-                <div className="text-sm font-medium">{t("weigh.crushing_created", createdCrushingCode)}</div>
+                <div className="text-sm font-medium">
+                  {arrival.target_crushing_file_id
+                    ? t("weigh.crushing_attached", createdCrushingCode)
+                    : t("weigh.crushing_created", createdCrushingCode)}
+                </div>
                 <div className="font-mono text-xs text-muted-foreground tabular">{createdCrushingCode}</div>
               </div>
             </div>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/crushing">
-                {t("weigh.open_crushing")}
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPrintCrushingOpen(true)}>
+                <Printer className="me-1 h-4 w-4" />
+                {t("weigh.print_crushing_ticket")}
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/crushing">
+                  {t("weigh.open_crushing")}
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -643,6 +744,29 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               product={arrival.product}
             />
           </PrintLayout>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={printCrushingOpen} onOpenChange={setPrintCrushingOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("weigh.print_crushing_ticket")}</DialogTitle>
+          </DialogHeader>
+          {crushingFileData ? (
+            <PrintLayout onClose={() => setPrintCrushingOpen(false)}>
+              <CrushingTicket
+                file={crushingFileData.file}
+                client={crushingFileData.file.client as unknown as Client | null}
+                line={crushingFileData.file.line as unknown as Database["public"]["Tables"]["crushing_lines"]["Row"] | null}
+                arrivals={crushingFileData.attachedArrivals}
+              />
+            </PrintLayout>
+          ) : (
+            <div className="space-y-2 p-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

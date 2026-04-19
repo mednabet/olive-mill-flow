@@ -26,6 +26,7 @@ export type Database = {
           product_id: string | null
           service_type: Database["public"]["Enums"]["service_type"]
           status: Database["public"]["Enums"]["arrival_status"]
+          target_crushing_file_id: string | null
           ticket_number: string
           vehicle_id: string | null
         }
@@ -40,6 +41,7 @@ export type Database = {
           product_id?: string | null
           service_type: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["arrival_status"]
+          target_crushing_file_id?: string | null
           ticket_number: string
           vehicle_id?: string | null
         }
@@ -54,6 +56,7 @@ export type Database = {
           product_id?: string | null
           service_type?: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["arrival_status"]
+          target_crushing_file_id?: string | null
           ticket_number?: string
           vehicle_id?: string | null
         }
@@ -70,6 +73,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arrivals_target_crushing_file_id_fkey"
+            columns: ["target_crushing_file_id"]
+            isOneToOne: false
+            referencedRelation: "crushing_files"
             referencedColumns: ["id"]
           },
           {
