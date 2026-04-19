@@ -78,7 +78,7 @@ interface EnrichedArrival extends Arrival {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sb: any = supabase;
 
-export const Route = createFileRoute("/arrivals")({
+export const Route = createFileRoute("/arrivals/")({
   component: () => (
     <RequireRole roles={["admin", "superviseur", "peseur"]}>
       <ArrivalsPage />
