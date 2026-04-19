@@ -747,6 +747,29 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={printCrushingOpen} onOpenChange={setPrintCrushingOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("weigh.print_crushing_ticket")}</DialogTitle>
+          </DialogHeader>
+          {crushingFileData ? (
+            <PrintLayout onClose={() => setPrintCrushingOpen(false)}>
+              <CrushingTicket
+                file={crushingFileData.file}
+                client={crushingFileData.file.client as unknown as Client | null}
+                line={crushingFileData.file.line as unknown as Database["public"]["Tables"]["crushing_lines"]["Row"] | null}
+                arrivals={crushingFileData.attachedArrivals}
+              />
+            </PrintLayout>
+          ) : (
+            <div className="space-y-2 p-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
