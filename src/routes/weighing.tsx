@@ -116,6 +116,14 @@ function WeighingPage() {
     refetchInterval: 30_000,
   });
 
+  // Auto-ouverture du dialogue depuis ?arrival=ID (depuis page Arrivées)
+  useEffect(() => {
+    if (!arrivalParam || !arrivals) return;
+    const found = arrivals.find((a) => a.id === arrivalParam);
+    if (found) setTarget(found);
+    navigate({ search: { arrival: undefined }, replace: true });
+  }, [arrivalParam, arrivals, navigate]);
+
   const filtered = useMemo(() => {
     if (!arrivals) return [];
     let list = arrivals;
