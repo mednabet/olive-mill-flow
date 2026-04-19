@@ -59,19 +59,17 @@ function WeighingListPage() {
     }
   }, [arrivalParam, navigate]);
 
+  // Une seule requête : on récupère tous les arrivals non annulés, puis on filtre côté client.
+  // Cela évite les caches divergents entre onglets et garantit que les compteurs correspondent toujours aux listes affichées.
   const { data: arrivals, isLoading } = useQuery({
-    queryKey: ["weighing-arrivals", statusFilter],
+    queryKey: ["weighing-arrivals"],
     queryFn: async () => {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      let q = supabase
+      const { data, error } = await supabase
         .from("arrivals")
         .select("*, client:clients(*), vehicle:vehicles(*), weighings(*)")
         .neq("status", "cancelled")
         .order("created_at", { ascending: false })
-        .limit(200);
-      if (statusFilter === "pending") q = q.gte("created_at", start.toISOString());
-      const { data, error } = await q;
+        .limit(500);
       if (error) throw error;
       return data as unknown as EnrichedArrival[];
     },
