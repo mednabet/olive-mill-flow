@@ -16,6 +16,27 @@ function Write-Sub { param($m) Write-Host "    -> $m" -ForegroundColor Gray }
 
 Write-Host "`n=== Desinstallation OliveApp ===" -ForegroundColor Cyan
 
+# --- PostgREST service ---
+$pgrstSvc = Get-Service -Name "PostgREST" -ErrorAction SilentlyContinue
+if ($pgrstSvc) {
+    Write-Sub "Arret et suppression du service PostgREST..."
+    $nssm = "C:\PostgREST\nssm.exe"
+    if (Test-Path $nssm) {
+        & $nssm stop PostgREST 2>&1 | Out-Null
+        & $nssm remove PostgREST confirm 2>&1 | Out-Null
+    } else {
+        Stop-Service PostgREST -Force -ErrorAction SilentlyContinue
+        sc.exe delete PostgREST | Out-Null
+    }
+}
+if (Test-Path "C:\PostgREST") {
+    $confirmPgrst = Read-Host "Supprimer aussi le repertoire C:\PostgREST (binaire + config + credentials) ? (o/N)"
+    if ($confirmPgrst -eq "o" -or $confirmPgrst -eq "O") {
+        Remove-Item -Recurse -Force "C:\PostgREST" -ErrorAction SilentlyContinue
+        Write-Sub "C:\PostgREST supprime"
+    }
+}
+
 if (Test-Path "IIS:\Sites\$SiteName") {
     Write-Sub "Suppression du site IIS..."
     Stop-Website -Name $SiteName -ErrorAction SilentlyContinue
