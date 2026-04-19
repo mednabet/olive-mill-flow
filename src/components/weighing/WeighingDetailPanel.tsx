@@ -778,6 +778,14 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
         </DialogContent>
       </Dialog>
 
+      <AssignCrushingFileDialog
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+        arrivalId={arrival.id}
+        clientId={arrival.client_id}
+        arrivalTicket={arrival.ticket_number}
+      />
+
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
