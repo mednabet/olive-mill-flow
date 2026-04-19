@@ -769,6 +769,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               onReasonChange={setReason}
               allowManual={allowManual}
               scaleUrl={selectedScale?.websocket_url ?? null}
+              scalePollIntervalMs={selectedScale?.poll_interval_ms ?? 1000}
               scaleName={selectedScale?.name ?? null}
               autoFocus
             />
