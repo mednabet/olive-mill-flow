@@ -5,13 +5,14 @@
  */
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Scale, Printer } from "lucide-react";
+import { Scale, Printer, XCircle, Car, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
-import { useAllowManualConfig, useScales } from "@/lib/settings";
+import { useAllowManualConfig, useScales, useAllowCancelByPeseur } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PrintLayout } from "@/components/PrintLayout";
@@ -28,6 +29,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
