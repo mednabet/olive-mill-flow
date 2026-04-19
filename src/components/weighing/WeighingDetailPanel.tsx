@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Scale, Printer, XCircle, Car, FileText } from "lucide-react";
+import { Scale, Printer, XCircle, Car, FileText, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
@@ -18,6 +18,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { PrintLayout } from "@/components/PrintLayout";
 import { WeighingTicket } from "@/components/weighing/WeighingTicket";
 import { CrushingTicket } from "@/components/crushing/CrushingTicket";
+import { AssignCrushingFileDialog } from "@/components/crushing/AssignCrushingFileDialog";
 import { ScaleInput, type WeighingSourceUI } from "@/components/weighing/ScaleInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -78,6 +79,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const [printOpen, setPrintOpen] = useState(false);
   const [printCrushingOpen, setPrintCrushingOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
   const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
   const [createdCrushingFileId, setCreatedCrushingFileId] = useState<string | null>(null);
 
@@ -511,6 +513,12 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                 <Car className="h-3.5 w-3.5" />
                 {arrival.vehicle.plate}
               </span>
+            )}
+            {arrival.needs_crushing && (
+              <Button variant="outline" size="sm" onClick={() => setAssignOpen(true)}>
+                <Link2 className="me-1 h-4 w-4" />
+                {t("assign.action_label")}
+              </Button>
             )}
             {canCancel && (
               <Button variant="outline" size="sm" onClick={() => setCancelOpen(true)}>
