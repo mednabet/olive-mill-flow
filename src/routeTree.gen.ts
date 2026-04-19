@@ -10,11 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeighingRouteImport } from './routes/weighing'
-import { Route as VarietiesRouteImport } from './routes/varieties'
 import { Route as StocksRouteImport } from './routes/stocks'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PublicDisplayRouteImport } from './routes/public-display'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ProductionRouteImport } from './routes/production'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -31,11 +31,6 @@ import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 const WeighingRoute = WeighingRouteImport.update({
   id: '/weighing',
   path: '/weighing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VarietiesRoute = VarietiesRouteImport.update({
-  id: '/varieties',
-  path: '/varieties',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StocksRoute = StocksRouteImport.update({
@@ -56,6 +51,11 @@ const PublicDisplayRoute = PublicDisplayRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductionRoute = ProductionRouteImport.update({
@@ -127,11 +127,11 @@ export interface FileRoutesByFullPath {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/production': typeof ProductionRoute
+  '/products': typeof ProductsRoute
   '/profile': typeof ProfileRoute
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/varieties': typeof VarietiesRoute
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
@@ -147,11 +147,11 @@ export interface FileRoutesByTo {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/production': typeof ProductionRoute
+  '/products': typeof ProductsRoute
   '/profile': typeof ProfileRoute
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/varieties': typeof VarietiesRoute
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
@@ -168,11 +168,11 @@ export interface FileRoutesById {
   '/invoices': typeof InvoicesRoute
   '/login': typeof LoginRoute
   '/production': typeof ProductionRoute
+  '/products': typeof ProductsRoute
   '/profile': typeof ProfileRoute
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/varieties': typeof VarietiesRoute
   '/weighing': typeof WeighingRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
@@ -190,11 +190,11 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/production'
+    | '/products'
     | '/profile'
     | '/public-display'
     | '/queue'
     | '/stocks'
-    | '/varieties'
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
@@ -210,11 +210,11 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/production'
+    | '/products'
     | '/profile'
     | '/public-display'
     | '/queue'
     | '/stocks'
-    | '/varieties'
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
@@ -230,11 +230,11 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/login'
     | '/production'
+    | '/products'
     | '/profile'
     | '/public-display'
     | '/queue'
     | '/stocks'
-    | '/varieties'
     | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
@@ -251,11 +251,11 @@ export interface RootRouteChildren {
   InvoicesRoute: typeof InvoicesRoute
   LoginRoute: typeof LoginRoute
   ProductionRoute: typeof ProductionRoute
+  ProductsRoute: typeof ProductsRoute
   ProfileRoute: typeof ProfileRoute
   PublicDisplayRoute: typeof PublicDisplayRoute
   QueueRoute: typeof QueueRoute
   StocksRoute: typeof StocksRoute
-  VarietiesRoute: typeof VarietiesRoute
   WeighingRoute: typeof WeighingRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminLinesRoute: typeof AdminLinesRoute
@@ -271,13 +271,6 @@ declare module '@tanstack/react-router' {
       path: '/weighing'
       fullPath: '/weighing'
       preLoaderRoute: typeof WeighingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/varieties': {
-      id: '/varieties'
-      path: '/varieties'
-      fullPath: '/varieties'
-      preLoaderRoute: typeof VarietiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stocks': {
@@ -306,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/production': {
@@ -403,11 +403,11 @@ const rootRouteChildren: RootRouteChildren = {
   InvoicesRoute: InvoicesRoute,
   LoginRoute: LoginRoute,
   ProductionRoute: ProductionRoute,
+  ProductsRoute: ProductsRoute,
   ProfileRoute: ProfileRoute,
   PublicDisplayRoute: PublicDisplayRoute,
   QueueRoute: QueueRoute,
   StocksRoute: StocksRoute,
-  VarietiesRoute: VarietiesRoute,
   WeighingRoute: WeighingRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminLinesRoute: AdminLinesRoute,
@@ -418,12 +418,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
