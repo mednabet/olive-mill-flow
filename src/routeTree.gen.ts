@@ -21,7 +21,6 @@ import { Route as CrushingRouteImport } from './routes/crushing'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WeighingIndexRouteImport } from './routes/weighing.index'
-import { Route as ApiScaleProxyRouteImport } from './routes/api.scale-proxy'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminScalesRouteImport } from './routes/admin.scales'
@@ -88,11 +87,6 @@ const WeighingIndexRoute = WeighingIndexRouteImport.update({
   path: '/weighing/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiScaleProxyRoute = ApiScaleProxyRouteImport.update({
-  id: '/api/scale-proxy',
-  path: '/api/scale-proxy',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/admin/users',
   path: '/admin/users',
@@ -136,7 +130,6 @@ export interface FileRoutesByFullPath {
   '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
-  '/api/scale-proxy': typeof ApiScaleProxyRoute
   '/weighing/': typeof WeighingIndexRoute
 }
 export interface FileRoutesByTo {
@@ -156,7 +149,6 @@ export interface FileRoutesByTo {
   '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
-  '/api/scale-proxy': typeof ApiScaleProxyRoute
   '/weighing': typeof WeighingIndexRoute
 }
 export interface FileRoutesById {
@@ -177,7 +169,6 @@ export interface FileRoutesById {
   '/admin/scales': typeof AdminScalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
-  '/api/scale-proxy': typeof ApiScaleProxyRoute
   '/weighing/': typeof WeighingIndexRoute
 }
 export interface FileRouteTypes {
@@ -199,7 +190,6 @@ export interface FileRouteTypes {
     | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
-    | '/api/scale-proxy'
     | '/weighing/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -219,7 +209,6 @@ export interface FileRouteTypes {
     | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
-    | '/api/scale-proxy'
     | '/weighing'
   id:
     | '__root__'
@@ -239,7 +228,6 @@ export interface FileRouteTypes {
     | '/admin/scales'
     | '/admin/settings'
     | '/admin/users'
-    | '/api/scale-proxy'
     | '/weighing/'
   fileRoutesById: FileRoutesById
 }
@@ -260,7 +248,6 @@ export interface RootRouteChildren {
   AdminScalesRoute: typeof AdminScalesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
-  ApiScaleProxyRoute: typeof ApiScaleProxyRoute
   WeighingIndexRoute: typeof WeighingIndexRoute
 }
 
@@ -350,13 +337,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WeighingIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/scale-proxy': {
-      id: '/api/scale-proxy'
-      path: '/api/scale-proxy'
-      fullPath: '/api/scale-proxy'
-      preLoaderRoute: typeof ApiScaleProxyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/users': {
       id: '/admin/users'
       path: '/admin/users'
@@ -412,7 +392,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminScalesRoute: AdminScalesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
-  ApiScaleProxyRoute: ApiScaleProxyRoute,
   WeighingIndexRoute: WeighingIndexRoute,
 }
 export const routeTree = rootRouteImport
