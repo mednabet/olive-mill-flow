@@ -256,6 +256,8 @@ const dict = {
     "weigh.no_scales_configured": "Aucune balance configurée. La saisie manuelle est utilisée.",
     "weigh.open_crushing": "Ouvrir le dossier d'écrasement",
     "weigh.tab_crushing_first": "Écrasement",
+    "admin.settings.allow_cancel_peseur": "Autoriser le peseur à annuler une arrivée",
+    "admin.settings.allow_cancel_peseur_help": "Si activé, un peseur peut annuler une arrivée tant qu'aucune pesée n'a été enregistrée. Sinon, seuls admin et superviseur peuvent annuler.",
     // Crushing files / Queue
     "crushing.title": "Écrasement",
     "crushing.subtitle": "Dossiers en cours et historique",
@@ -767,6 +769,8 @@ const dict = {
     "weigh.no_scales_configured": "لا توجد موازين مهيّأة. يُستعمل الإدخال اليدوي.",
     "weigh.open_crushing": "فتح ملف العصر",
     "weigh.tab_crushing_first": "العصر",
+    "admin.settings.allow_cancel_peseur": "السماح للوزّان بإلغاء وارد",
+    "admin.settings.allow_cancel_peseur_help": "إذا تم التفعيل، يمكن للوزّان إلغاء وارد ما لم يُسجّل أي وزن. وإلا فالإلغاء يقتصر على admin و superviseur.",
     // Crushing
     "crushing.title": "العصر",
     "crushing.subtitle": "الملفات الجارية والسجل",
