@@ -413,18 +413,19 @@ function NewArrivalDialog({
       if (ticketErr) throw ticketErr;
       const ticket = ticketData as string;
 
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from("arrivals")
         .insert({
           ticket_number: ticket,
           client_id: client.id,
           vehicle_id: vehicleId || null,
           service_type: serviceType,
+          product_id: serviceType === "crushing" && productId ? productId : null,
           notes: notes.trim() || null,
           created_by: user?.id ?? null,
           status: "open",
         })
-        .select("*, client:clients(*), vehicle:vehicles(*)")
+        .select("*, client:clients(*), vehicle:vehicles(*), product:products(*)")
         .single();
       if (error) throw error;
       return data as unknown as EnrichedArrival;
