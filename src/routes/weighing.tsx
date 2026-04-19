@@ -71,6 +71,7 @@ function WeighingPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"pending" | "all">("pending");
   const [target, setTarget] = useState<EnrichedArrival | null>(null);
+  const [listArrival, setListArrival] = useState<EnrichedArrival | null>(null);
   const [printArrival, setPrintArrival] = useState<EnrichedArrival | null>(null);
   const [selectedScaleId, setSelectedScaleId] = useState<string>(() => {
     if (typeof window === "undefined") return "";
@@ -118,13 +119,13 @@ function WeighingPage() {
 
   // Auto-ouverture depuis ?arrival=ID (depuis page Arrivées) :
   // - aucune pesée → dialogue de saisie
-  // - sinon → liste des pesées (ticket récap)
+  // - sinon → dialogue liste des pesées
   useEffect(() => {
     if (!arrivalParam || !arrivals) return;
     const found = arrivals.find((a) => a.id === arrivalParam);
     if (found) {
       if (found.weighings.length === 0) setTarget(found);
-      else setPrintArrival(found);
+      else setListArrival(found);
     }
     navigate({ search: { arrival: undefined }, replace: true });
   }, [arrivalParam, arrivals, navigate]);
@@ -210,6 +211,13 @@ function WeighingPage() {
         scaleName={selectedScale?.name ?? null}
         onClose={() => setTarget(null)}
         onPrint={(a) => { setTarget(null); setPrintArrival(a); }}
+      />
+
+      <WeighingsListDialog
+        arrival={listArrival}
+        onClose={() => setListArrival(null)}
+        onAddNew={(a) => { setListArrival(null); setTarget(a); }}
+        onPrint={(a) => { setListArrival(null); setPrintArrival(a); }}
       />
 
       <Dialog open={!!printArrival} onOpenChange={(o) => { if (!o) setPrintArrival(null); }}>
@@ -466,4 +474,103 @@ async function refetchEnriched(id: string): Promise<EnrichedArrival | null> {
     .eq("id", id)
     .maybeSingle();
   return (data as unknown as EnrichedArrival) ?? null;
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* Dialog : liste des pesées d'une arrivée                    */
+/* ────────────────────────────────────────────────────────── */
+
+function WeighingsListDialog({
+  arrival,
+  onClose,
+  onAddNew,
+  onPrint,
+}: {
+  arrival: EnrichedArrival | null;
+  onClose: () => void;
+  onAddNew: (a: EnrichedArrival) => void;
+  onPrint: (a: EnrichedArrival) => void;
+}) {
+  const { t } = useI18n();
+
+  const KIND_LABEL: Record<WeighingKind, TranslationKey> = {
+    simple: "weigh.kind.simple",
+    first: "weigh.kind.first",
+    second: "weigh.kind.second",
+  };
+
+  if (!arrival) return null;
+
+  const isDouble = arrival.service_type === "weigh_double";
+  const hasFirst = arrival.weighings.some((w) => w.kind === "first");
+  const hasSecond = arrival.weighings.some((w) => w.kind === "second");
+  const canAdd = isDouble ? !(hasFirst && hasSecond) : arrival.weighings.length === 0;
+
+  return (
+    <Dialog open={!!arrival} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Scale className="h-5 w-5 text-primary" />
+            <span className="font-mono tabular">{arrival.ticket_number}</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        {arrival.client && (
+          <div className="rounded-md bg-muted/40 p-3 text-sm">
+            <div className="font-medium">{arrival.client.full_name}</div>
+            <div className="font-mono text-xs text-muted-foreground tabular">{arrival.client.code}</div>
+          </div>
+        )}
+
+        <ul className="space-y-2">
+          {arrival.weighings
+            .slice()
+            .sort((a, b) => new Date(a.performed_at).getTime() - new Date(b.performed_at).getTime())
+            .map((w) => (
+              <li key={w.id}>
+                <Card>
+                  <CardContent className="flex items-center gap-3 p-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Scale className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{t(KIND_LABEL[w.kind])}</span>
+                        <StatusBadge tone={w.source === "manual" ? "warning" : "info"}>
+                          {w.source}
+                        </StatusBadge>
+                      </div>
+                      <div className="mt-0.5 text-xs text-muted-foreground tabular">
+                        {new Date(w.performed_at).toLocaleString()}
+                      </div>
+                      {w.manual_reason && (
+                        <div className="mt-0.5 truncate text-xs italic text-muted-foreground">
+                          {w.manual_reason}
+                        </div>
+                      )}
+                    </div>
+                    <div className="font-mono text-lg font-bold tabular">{formatKg(w.weight_kg)}</div>
+                  </CardContent>
+                </Card>
+              </li>
+            ))}
+        </ul>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+          <Button variant="ghost" onClick={() => onPrint(arrival)}>
+            <Printer className="me-1 h-4 w-4" />
+            {t("common.print")}
+          </Button>
+          {canAdd && (
+            <Button onClick={() => onAddNew(arrival)}>
+              <Scale className="me-1 h-4 w-4" />
+              {t("weigh.save")}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
