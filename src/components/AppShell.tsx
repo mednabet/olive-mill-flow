@@ -36,7 +36,6 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/", label: "nav.dashboard", icon: LayoutDashboard, roles: ["admin", "superviseur", "peseur", "operateur", "caisse"] },
-  { to: "/arrivals", label: "nav.arrivals", icon: PackageOpen, roles: ["admin", "superviseur", "peseur"] },
   { to: "/weighing", label: "nav.weighing", icon: Scale, roles: ["admin", "superviseur", "peseur"] },
   { to: "/queue", label: "nav.queue", icon: ListOrdered, roles: ["admin", "superviseur", "peseur", "operateur"] },
   { to: "/crushing", label: "nav.crushing", icon: Factory, roles: ["admin", "superviseur", "operateur"] },
