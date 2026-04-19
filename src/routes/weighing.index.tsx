@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -14,12 +14,14 @@ import { RequireRole } from "@/components/RequireRole";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { WeighingDetailPanel } from "@/components/weighing/WeighingDetailPanel";
+import { NewArrivalDialog } from "@/components/arrivals/NewArrivalDialog";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
