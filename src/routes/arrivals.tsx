@@ -17,7 +17,6 @@ import {
   Scale,
   Factory,
   Ban,
-  ArrowRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -310,14 +309,14 @@ function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
           </div>
 
           <div className="flex items-center gap-1">
-            {!isCancelled && arrival.service_type !== "crushing" && (
+            {!isCancelled && (
               <Button
-                variant="ghost"
+                variant={arrival.service_type === "crushing" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => navigate({ to: "/weighing" })}
               >
-                <ArrowRight className="me-1 h-4 w-4" />
-                {t("arrival.go_to_weighing")}
+                <Scale className="me-1 h-4 w-4" />
+                {arrival.service_type === "crushing" ? t("weigh.title") : t("arrival.go_to_weighing")}
               </Button>
             )}
             {!isCancelled && (
