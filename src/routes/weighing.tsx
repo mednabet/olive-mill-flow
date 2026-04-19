@@ -52,6 +52,9 @@ interface EnrichedArrival extends Arrival {
 }
 
 export const Route = createFileRoute("/weighing")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    arrival: typeof search.arrival === "string" ? search.arrival : undefined,
+  }),
   component: () => (
     <RequireRole roles={["admin", "superviseur", "peseur"]}>
       <WeighingPage />
@@ -63,6 +66,8 @@ function WeighingPage() {
   const { t } = useI18n();
   const { profile } = useAuth();
   const { data: scales } = useScales(false);
+  const { arrival: arrivalParam } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"pending" | "all">("pending");
   const [target, setTarget] = useState<EnrichedArrival | null>(null);
