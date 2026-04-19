@@ -121,7 +121,17 @@ function WeighingListPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("weigh.title")} subtitle={t("weigh.subtitle")} icon={<Scale className="h-5 w-5" />} />
+      <PageHeader
+        title={t("weigh.title")}
+        subtitle={t("weigh.subtitle")}
+        icon={<Scale className="h-5 w-5" />}
+        actions={
+          <Button onClick={() => setShowNew(true)} size="lg">
+            <Plus className="me-1 h-4 w-4" />
+            {t("arrival.new")}
+          </Button>
+        }
+      />
 
       <Tabs value={serviceTab} onValueChange={(v) => setServiceTab(v as ServiceTab)}>
         <TabsList className="flex-wrap">
@@ -190,6 +200,12 @@ function WeighingListPage() {
           {openArrivalId && <WeighingDetailPanel arrivalId={openArrivalId} />}
         </SheetContent>
       </Sheet>
+
+      <NewArrivalDialog
+        open={showNew}
+        onOpenChange={setShowNew}
+        onCreated={(id) => setOpenArrivalId(id)}
+      />
     </div>
   );
 }
