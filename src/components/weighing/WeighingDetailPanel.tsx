@@ -682,36 +682,52 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
 
       {sortedWeighings.length > 0 && (
         <ul className="space-y-2">
-          {sortedWeighings.map((w) => (
-            <li key={w.id}>
-              <Card>
-                <CardContent className="flex items-center gap-3 p-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Scale className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{t(KIND_LABEL[w.kind])}</span>
-                      <StatusBadge tone={w.source === "manual" ? "warning" : "info"}>
-                        {w.source}
-                      </StatusBadge>
+          {sortedWeighings.map((w) => {
+            const canEditThis = isPrivileged || isPeseur;
+            return (
+              <li key={w.id}>
+                <Card>
+                  <CardContent className="flex items-center gap-3 p-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Scale className="h-4 w-4" />
                     </div>
-                    <div className="mt-0.5 text-xs text-muted-foreground tabular">
-                      {new Date(w.performed_at).toLocaleString()}
-                    </div>
-                    {w.manual_reason && (
-                      <div className="mt-0.5 truncate text-xs italic text-muted-foreground">
-                        {w.manual_reason}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{t(KIND_LABEL[w.kind])}</span>
+                        <StatusBadge tone={w.source === "manual" ? "warning" : "info"}>
+                          {w.source}
+                        </StatusBadge>
+                        {w.is_corrected && (
+                          <StatusBadge tone="warning">{t("weigh.corrected")}</StatusBadge>
+                        )}
                       </div>
+                      <div className="mt-0.5 text-xs text-muted-foreground tabular">
+                        {new Date(w.performed_at).toLocaleString()}
+                      </div>
+                      {w.manual_reason && (
+                        <div className="mt-0.5 truncate text-xs italic text-muted-foreground">
+                          {w.manual_reason}
+                        </div>
+                      )}
+                    </div>
+                    <div className="font-mono text-lg font-bold tabular">
+                      {formatKg(w.weight_kg)}
+                    </div>
+                    {canEditThis && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditingWeighing(w)}
+                        title={t("weigh.edit")}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     )}
-                  </div>
-                  <div className="font-mono text-lg font-bold tabular">
-                    {formatKg(w.weight_kg)}
-                  </div>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
+                  </CardContent>
+                </Card>
+              </li>
+            );
+          })}
         </ul>
       )}
 
