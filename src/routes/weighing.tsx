@@ -116,11 +116,16 @@ function WeighingPage() {
     refetchInterval: 30_000,
   });
 
-  // Auto-ouverture du dialogue depuis ?arrival=ID (depuis page Arrivées)
+  // Auto-ouverture depuis ?arrival=ID (depuis page Arrivées) :
+  // - aucune pesée → dialogue de saisie
+  // - sinon → liste des pesées (ticket récap)
   useEffect(() => {
     if (!arrivalParam || !arrivals) return;
     const found = arrivals.find((a) => a.id === arrivalParam);
-    if (found) setTarget(found);
+    if (found) {
+      if (found.weighings.length === 0) setTarget(found);
+      else setPrintArrival(found);
+    }
     navigate({ search: { arrival: undefined }, replace: true });
   }, [arrivalParam, arrivals, navigate]);
 
