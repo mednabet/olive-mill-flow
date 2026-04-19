@@ -402,14 +402,54 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     simple?.weight_kg ??
     (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
 
+  const hasAnyWeighing = arrival.weighings.length > 0;
+  const canCancel =
+    !hasAnyWeighing &&
+    arrival.status !== "cancelled" &&
+    (isPrivileged || (isPeseur && (allowCancelCfg?.enabled ?? false)));
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={arrival.ticket_number}
         subtitle={arrival.client?.full_name ?? undefined}
         icon={<Scale className="h-5 w-5" />}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {arrival.vehicle && (
+              <span className="inline-flex items-center gap-1 self-center rounded bg-muted px-2 py-1 font-mono text-xs tabular" dir="ltr">
+                <Car className="h-3.5 w-3.5" />
+                {arrival.vehicle.plate}
+              </span>
+            )}
+            {canCancel && (
+              <Button variant="outline" size="sm" onClick={() => setCancelOpen(true)}>
+                <XCircle className="me-1 h-4 w-4" />
+                {t("weigh.cancel_arrival")}
+              </Button>
+            )}
+          </div>
+        }
       />
 
+      {createdCrushingCode && (
+        <Card className="border-success/40 bg-success/5">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-success" />
+              <div>
+                <div className="text-sm font-medium">{t("weigh.crushing_created", createdCrushingCode)}</div>
+                <div className="font-mono text-xs text-muted-foreground tabular">{createdCrushingCode}</div>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/crushing">
+                {t("weigh.open_crushing")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       {arrival.service_type === "crushing" && (
         <Card>
           <CardContent className="space-y-2 p-4">
