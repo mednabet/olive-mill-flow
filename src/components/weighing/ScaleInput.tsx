@@ -68,16 +68,8 @@ export function ScaleInput({
     scalePollIntervalMs ?? 1000,
   );
 
-  // Si lecture stable & source scale → pré-remplir au survol mais NE PAS écraser une saisie manuelle
-  useEffect(() => {
-    if (source === "scale" && reader.weight !== null && reader.stable) {
-      // ne pas écraser si l'utilisateur a déjà capturé un poids différent qu'il édite
-      // on remplit uniquement si vide
-      if (value === "") {
-        onChange(String(reader.weight));
-      }
-    }
-  }, [reader.weight, reader.stable, source, value, onChange]);
+  // En mode balance : NE PAS pré-remplir automatiquement.
+  // L'utilisateur capture explicitement via le bouton "Lire le poids".
 
   const capture = () => {
     if (reader.weight !== null) onChange(String(reader.weight));
@@ -89,6 +81,9 @@ export function ScaleInput({
     connected: t("weigh.scale_status.connected"),
     error: t("weigh.scale_status.error"),
   };
+
+  const isScaleMode = source === "scale";
+  const captured = value !== "" && value !== null;
 
   return (
     <div className="space-y-3">
@@ -121,65 +116,131 @@ export function ScaleInput({
         )}
       </div>
 
-      {/* Bandeau état balance (seulement si source = scale) */}
-      {source === "scale" && (
-        <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
-          <div className="flex items-center gap-2 text-xs">
+      {isScaleMode ? (
+        /* === MODE BALANCE : affichage temps réel + bouton "Lire le poids" === */
+        <div className="space-y-2">
+          <Label>
+            {label ?? t("weigh.weight")} ({t("common.kg")}){" "}
+            <span className="text-destructive">*</span>
+          </Label>
+
+          {/* Bandeau état balance */}
+          <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs">
             <span className={cn("h-2 w-2 rounded-full", STATUS_DOT[reader.status])} />
             <span className="font-medium">{statusLabel[reader.status]}</span>
-            {scaleName && (
-              <span className="text-muted-foreground">· {scaleName}</span>
-            )}
+            {scaleName && <span className="text-muted-foreground">· {scaleName}</span>}
             {reader.status === "connected" && (
               <span
                 className={cn(
                   "rounded px-1.5 py-0.5 text-[10px] font-bold",
-                  reader.stable ? "bg-success/20 text-success" : "bg-warning/20 text-warning-foreground",
+                  reader.stable
+                    ? "bg-success/20 text-success"
+                    : "bg-warning/20 text-warning-foreground",
                 )}
               >
                 {reader.stable ? t("weigh.scale_stable") : t("weigh.scale_unstable")}
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono tabular text-base font-bold" dir="ltr">
-              {reader.weight !== null ? `${reader.weight} kg` : "—"}
-            </span>
             {reader.status === "error" && (
-              <Button type="button" size="sm" variant="ghost" onClick={reader.reconnect}>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="ms-auto h-6 px-2"
+                onClick={reader.reconnect}
+              >
                 <RefreshCw className="me-1 h-3.5 w-3.5" />
                 {t("weigh.reconnect")}
               </Button>
             )}
-            {reader.status === "connected" && (
-              <Button type="button" size="sm" variant="secondary" onClick={capture} disabled={reader.weight === null}>
-                <Camera className="me-1 h-3.5 w-3.5" />
-                {t("weigh.capture_scale")}
-              </Button>
-            )}
           </div>
+
+          {/* Grand afficheur poids temps réel */}
+          <div
+            className={cn(
+              "rounded-lg border-2 p-4 transition-colors",
+              reader.status === "connected" && reader.stable
+                ? "border-success/40 bg-success/5"
+                : reader.status === "connected"
+                  ? "border-warning/40 bg-warning/5"
+                  : reader.status === "error"
+                    ? "border-destructive/40 bg-destructive/5"
+                    : "border-muted bg-muted/20",
+            )}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {t("weigh.scale_status.connected")}
+                </div>
+                <div
+                  className="font-mono tabular text-5xl font-black leading-none tracking-tight"
+                  dir="ltr"
+                >
+                  {reader.weight !== null ? reader.weight : "—"}
+                  <span className="ms-2 text-2xl font-bold text-muted-foreground">
+                    {t("common.kg")}
+                  </span>
+                </div>
+              </div>
+              {captured && (
+                <div className="shrink-0 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-end">
+                  <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {t("weigh.captured") /* fallback if missing */}
+                  </div>
+                  <div
+                    className="font-mono tabular text-2xl font-bold text-primary"
+                    dir="ltr"
+                  >
+                    {value} <span className="text-sm">{t("common.kg")}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Champ caché pour préserver la valeur dans le formulaire */}
+            <input type="hidden" value={value} readOnly />
+
+            <Button
+              type="button"
+              size="lg"
+              className="mt-3 w-full gap-2 text-base font-bold"
+              onClick={capture}
+              disabled={reader.status !== "connected" || reader.weight === null}
+              variant={captured ? "secondary" : "default"}
+            >
+              <Camera className="h-5 w-5" />
+              {captured ? t("weigh.read_weight_again") : t("weigh.read_weight")}
+            </Button>
+          </div>
+
+          {captured && (
+            <p className="text-xs text-muted-foreground">
+              {t("weigh.read_weight_hint")}
+            </p>
+          )}
+        </div>
+      ) : (
+        /* === MODE MANUEL : input éditable === */
+        <div className="space-y-1.5">
+          <Label htmlFor="scale-weight">
+            {label ?? t("weigh.weight")} ({t("common.kg")}){" "}
+            <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="scale-weight"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            min="0"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            autoFocus={autoFocus}
+            className="font-mono text-3xl tabular h-16"
+            dir="ltr"
+          />
         </div>
       )}
-
-      {/* Champ poids */}
-      <div className="space-y-1.5">
-        <Label htmlFor="scale-weight">
-          {label ?? t("weigh.weight")} ({t("common.kg")}) <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="scale-weight"
-          type="number"
-          inputMode="decimal"
-          step="0.1"
-          min="0"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          autoFocus={autoFocus}
-          readOnly={source === "scale" && !allowManual}
-          className="font-mono text-3xl tabular h-16"
-          dir="ltr"
-        />
-      </div>
 
       {/* Motif si manuel */}
       {source === "manual" && (
