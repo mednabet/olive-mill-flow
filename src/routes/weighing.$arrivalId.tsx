@@ -178,15 +178,15 @@ function WeighingArrivalPage() {
         // Si l'arrivée est de type "écrasement", créer automatiquement
         // le dossier d'écrasement et l'entrée stock client (olives).
         if (arrival.service_type === "crushing") {
-          // Calcul net définitif (à partir des pesées + la nouvelle qu'on vient d'insérer).
+          // Calcul net définitif (en incluant la pesée qu'on vient d'insérer).
+          const k: WeighingKind = kind;
           const simpleW = arrival.weighings.find((x) => x.kind === "simple")?.weight_kg
-            ?? (kind === "simple" ? w : null);
-          const firstW = arrival.weighings.find((x) => x.kind === "first")?.weight_kg
-            ?? (kind === "first" ? w : null);
+            ?? (k === "simple" ? w : null);
+          const firstW = arrival.weighings.find((x) => x.kind === "first")?.weight_kg ?? null;
           const secondW = arrival.weighings.find((x) => x.kind === "second")?.weight_kg
-            ?? (kind === "second" ? w : null);
+            ?? (k === "second" ? w : null);
           const grossKg = simpleW ?? secondW ?? null;
-          const tareKg = firstW ?? null;
+          const tareKg = firstW;
           const netKg = simpleW ?? (grossKg !== null && tareKg !== null ? Math.max(0, grossKg - tareKg) : null);
 
           if (netKg !== null && netKg > 0) {
