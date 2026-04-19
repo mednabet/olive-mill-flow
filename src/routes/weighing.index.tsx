@@ -154,11 +154,8 @@ function WeighingListPage() {
 
       <Tabs value={serviceTab} onValueChange={(v) => setServiceTab(v as ServiceTab)}>
         <TabsList className="flex-wrap">
-          <TabsTrigger value="all">
-            {t("common.all")}
-            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.all}</span>
-          </TabsTrigger>
           <TabsTrigger value="crushing">
+            <Leaf className="me-1 h-3.5 w-3.5" />
             {t("nav.crushing")}
             <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.crushing}</span>
           </TabsTrigger>
@@ -169,6 +166,10 @@ function WeighingListPage() {
           <TabsTrigger value="weigh_double">
             {t("weigh.kind.first")}/{t("weigh.kind.second")}
             <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.weigh_double}</span>
+          </TabsTrigger>
+          <TabsTrigger value="all">
+            {t("common.all")}
+            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.all}</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
