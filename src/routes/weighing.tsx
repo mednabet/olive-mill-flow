@@ -119,13 +119,13 @@ function WeighingPage() {
 
   // Auto-ouverture depuis ?arrival=ID (depuis page Arrivées) :
   // - aucune pesée → dialogue de saisie
-  // - sinon → liste des pesées (ticket récap)
+  // - sinon → dialogue liste des pesées
   useEffect(() => {
     if (!arrivalParam || !arrivals) return;
     const found = arrivals.find((a) => a.id === arrivalParam);
     if (found) {
       if (found.weighings.length === 0) setTarget(found);
-      else setPrintArrival(found);
+      else setListArrival(found);
     }
     navigate({ search: { arrival: undefined }, replace: true });
   }, [arrivalParam, arrivals, navigate]);
