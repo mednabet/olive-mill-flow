@@ -71,6 +71,7 @@ function WeighingPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"pending" | "all">("pending");
   const [target, setTarget] = useState<EnrichedArrival | null>(null);
+  const [listArrival, setListArrival] = useState<EnrichedArrival | null>(null);
   const [printArrival, setPrintArrival] = useState<EnrichedArrival | null>(null);
   const [selectedScaleId, setSelectedScaleId] = useState<string>(() => {
     if (typeof window === "undefined") return "";
