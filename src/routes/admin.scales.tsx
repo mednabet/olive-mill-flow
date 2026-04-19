@@ -225,6 +225,7 @@ function ScaleFormDialog({
         kind,
         websocket_url: url.trim() || null,
         max_capacity_kg: parseFloat(maxCap) || 0,
+        poll_interval_ms: Math.max(200, parseInt(pollMs, 10) || 1000),
         notes: notes.trim() || null,
       };
       if (scale) {
