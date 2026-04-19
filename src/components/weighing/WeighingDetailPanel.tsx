@@ -130,7 +130,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
       await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
       await qc.invalidateQueries({ queryKey: ["arrivals"] });
-      toast.success(t("common.saved"));
+      toast.success(t("common.success"));
     },
     onError: (e: Error) => toast.error(e.message),
   });
