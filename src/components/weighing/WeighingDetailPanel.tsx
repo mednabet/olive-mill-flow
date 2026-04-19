@@ -72,6 +72,11 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const qc = useQueryClient();
   const { data: scales } = useScales(false);
   const { data: allowManualCfg } = useAllowManualConfig();
+  const { data: allowCancelCfg } = useAllowCancelByPeseur();
+
+  const [printOpen, setPrintOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
 
   const [printOpen, setPrintOpen] = useState(false);
   const [weight, setWeight] = useState("");
