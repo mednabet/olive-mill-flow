@@ -213,6 +213,13 @@ function WeighingPage() {
         onPrint={(a) => { setTarget(null); setPrintArrival(a); }}
       />
 
+      <WeighingsListDialog
+        arrival={listArrival}
+        onClose={() => setListArrival(null)}
+        onAddNew={(a) => { setListArrival(null); setTarget(a); }}
+        onPrint={(a) => { setListArrival(null); setPrintArrival(a); }}
+      />
+
       <Dialog open={!!printArrival} onOpenChange={(o) => { if (!o) setPrintArrival(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
