@@ -101,9 +101,9 @@ const WeighingArrivalIdRoute = WeighingArrivalIdRouteImport.update({
   getParentRoute: () => WeighingRoute,
 } as any)
 const ArrivalsArrivalIdRoute = ArrivalsArrivalIdRouteImport.update({
-  id: '/$arrivalId',
-  path: '/$arrivalId',
-  getParentRoute: () => ArrivalsRoute,
+  id: '/arrivals/$arrivalId',
+  path: '/arrivals/$arrivalId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/admin/users',
@@ -285,6 +285,7 @@ export interface RootRouteChildren {
   AdminScalesRoute: typeof AdminScalesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
+  ArrivalsArrivalIdRoute: typeof ArrivalsArrivalIdRoute
   ArrivalsIndexRoute: typeof ArrivalsIndexRoute
 }
 
@@ -390,10 +391,10 @@ declare module '@tanstack/react-router' {
     }
     '/arrivals/$arrivalId': {
       id: '/arrivals/$arrivalId'
-      path: '/$arrivalId'
+      path: '/arrivals/$arrivalId'
       fullPath: '/arrivals/$arrivalId'
       preLoaderRoute: typeof ArrivalsArrivalIdRouteImport
-      parentRoute: typeof ArrivalsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/users': {
       id: '/admin/users'
@@ -463,17 +464,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminScalesRoute: AdminScalesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
+  ArrivalsArrivalIdRoute: ArrivalsArrivalIdRoute,
   ArrivalsIndexRoute: ArrivalsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
