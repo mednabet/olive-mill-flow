@@ -528,15 +528,25 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-success" />
               <div>
-                <div className="text-sm font-medium">{t("weigh.crushing_created", createdCrushingCode)}</div>
+                <div className="text-sm font-medium">
+                  {arrival.target_crushing_file_id
+                    ? t("weigh.crushing_attached", createdCrushingCode)
+                    : t("weigh.crushing_created", createdCrushingCode)}
+                </div>
                 <div className="font-mono text-xs text-muted-foreground tabular">{createdCrushingCode}</div>
               </div>
             </div>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/crushing">
-                {t("weigh.open_crushing")}
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPrintCrushingOpen(true)}>
+                <Printer className="me-1 h-4 w-4" />
+                {t("weigh.print_crushing_ticket")}
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/crushing">
+                  {t("weigh.open_crushing")}
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
