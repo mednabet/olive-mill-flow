@@ -78,7 +78,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
 
-  const [printOpen, setPrintOpen] = useState(false);
+  // (printOpen déclaré plus haut)
   const [weight, setWeight] = useState("");
   const [source, setSource] = useState<WeighingSourceUI>("scale");
   const [reason, setReason] = useState("");
