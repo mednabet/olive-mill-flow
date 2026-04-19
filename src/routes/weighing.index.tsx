@@ -108,8 +108,8 @@ function WeighingListPage() {
           : a.weighings.length === 0;
       if (statusFilter === "pending" && !isPending) continue;
       c.all += 1;
-      if (a.service_type === "crushing") c.crushing += 1;
-      else if (a.service_type === "weigh_simple") c.weigh_simple += 1;
+      if (a.needs_crushing) c.crushing += 1;
+      if (a.service_type === "weigh_simple") c.weigh_simple += 1;
       else if (a.service_type === "weigh_double") c.weigh_double += 1;
     }
     return c;
@@ -120,12 +120,13 @@ function WeighingListPage() {
     let list = arrivals;
     if (statusFilter === "pending") {
       list = list.filter((a) => {
-        if (a.service_type === "weigh_simple") return a.weighings.length === 0;
         if (a.service_type === "weigh_double") return a.weighings.length < 2;
         return a.weighings.length === 0;
       });
     }
-    if (serviceTab !== "all") {
+    if (serviceTab === "crushing") {
+      list = list.filter((a) => a.needs_crushing);
+    } else if (serviceTab !== "all") {
       list = list.filter((a) => a.service_type === serviceTab);
     }
     const q = search.trim().toLowerCase();
