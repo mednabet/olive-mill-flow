@@ -530,7 +530,39 @@ function NewArrivalDialog({
               </div>
             </div>
 
-            {/* Notes */}
+            {/* Produit (variété d'olive) — visible uniquement pour l'écrasement */}
+            {serviceType === "crushing" && (
+              <div className="space-y-1.5">
+                <Label>
+                  {t("arrival.product")}{" "}
+                  <span className="text-xs text-muted-foreground">({t("common.optional")})</span>
+                </Label>
+                <Select
+                  value={productId || "__none"}
+                  onValueChange={(v) => setProductId(v === "__none" ? "" : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("arrival.product_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">{t("arrival.no_product")}</SelectItem>
+                    {products?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <span
+                          className="me-2 inline-block h-2 w-2 rounded-full align-middle"
+                          style={{ backgroundColor: p.color ?? "#84cc16" }}
+                        />
+                        {p.name}
+                        <span className="ms-2 font-mono text-xs text-muted-foreground tabular">
+                          {p.code}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label htmlFor="notes">
                 {t("common.notes")}{" "}
