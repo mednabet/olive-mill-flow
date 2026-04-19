@@ -568,7 +568,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                 <Scale className="h-5 w-5 text-primary" />
                 {t(KIND_LABEL[kind])}
               </h3>
-              {scales && scales.length > 0 && (
+              {scales && scales.length > 0 ? (
                 <Select value={selectedScaleId} onValueChange={setSelectedScaleId}>
                   <SelectTrigger className="w-full sm:w-64">
                     <SelectValue placeholder={t("admin.scales.title")} />
@@ -582,6 +582,10 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                     ))}
                   </SelectContent>
                 </Select>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {t("weigh.no_scales_configured")}
+                </span>
               )}
             </div>
 
@@ -637,10 +641,36 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               client={arrival.client}
               vehicle={arrival.vehicle}
               weighings={arrival.weighings}
+              product={arrival.product}
             />
           </PrintLayout>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("weigh.cancel_arrival_confirm", arrival.ticket_number)}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {hasAnyWeighing
+                ? t("weigh.cancel_arrival_with_weighings")
+                : t("weigh.cancel_arrival")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => cancelMutation.mutate()}
+              disabled={cancelMutation.isPending || hasAnyWeighing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

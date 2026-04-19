@@ -9,15 +9,17 @@ type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type Vehicle = Database["public"]["Tables"]["vehicles"]["Row"];
 type Weighing = Database["public"]["Tables"]["weighings"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
 
 interface Props {
   arrival: Arrival;
   client?: Client | null;
   vehicle?: Vehicle | null;
   weighings: Weighing[];
+  product?: Product | null;
 }
 
-export function WeighingTicket({ arrival, client, vehicle, weighings }: Props) {
+export function WeighingTicket({ arrival, client, vehicle, weighings, product }: Props) {
   const { t, locale } = useI18n();
   const simple = weighings.find((w) => w.kind === "simple");
   const first = weighings.find((w) => w.kind === "first");
@@ -46,6 +48,7 @@ export function WeighingTicket({ arrival, client, vehicle, weighings }: Props) {
           </>
         )}
         {vehicle && <Row label={t("vehicle.plate")} value={vehicle.plate} mono />}
+        {product && <Row label={t("weigh.product")} value={product.name} />}
       </dl>
 
       <div className="my-2 border-t border-dashed border-gray-400" />
