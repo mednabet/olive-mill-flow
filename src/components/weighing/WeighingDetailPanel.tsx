@@ -898,6 +898,20 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {editingWeighing && (
+        <EditWeighingDialog
+          open={!!editingWeighing}
+          onOpenChange={(o) => !o && setEditingWeighing(null)}
+          weighing={editingWeighing}
+          arrival={{
+            id: arrival.id,
+            ticket_number: arrival.ticket_number,
+            service_type: arrival.service_type,
+          }}
+          allWeighings={arrival.weighings}
+        />
+      )}
     </div>
   );
 }
