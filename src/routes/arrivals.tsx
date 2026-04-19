@@ -359,6 +359,7 @@ function NewArrivalDialog({
   const [client, setClient] = useState<Client | null>(null);
   const [vehicleId, setVehicleId] = useState<string>("");
   const [serviceType, setServiceType] = useState<ServiceType>("weigh_simple");
+  const [productId, setProductId] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [showNewClient, setShowNewClient] = useState(false);
 
@@ -366,6 +367,7 @@ function NewArrivalDialog({
     setClient(null);
     setVehicleId("");
     setServiceType("weigh_simple");
+    setProductId("");
     setNotes("");
   };
 
@@ -383,6 +385,22 @@ function NewArrivalDialog({
       return data;
     },
     enabled: !!client,
+  });
+
+  // Catalogue produits actifs (variétés d'olives) pour l'écrasement
+  const { data: products } = useQuery({
+    queryKey: ["products", "olive", "active"],
+    queryFn: async () => {
+      const { data, error } = await sb
+        .from("products")
+        .select("id, code, name, name_ar, category, color, is_active")
+        .eq("category", "olive")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data as Product[];
+    },
+    enabled: open,
   });
 
   const createMutation = useMutation({
