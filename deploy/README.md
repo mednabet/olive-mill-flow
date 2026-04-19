@@ -59,12 +59,32 @@ deploy/
 │   ├── 03-database.ps1      # Crée DB, user, applique le schéma
 │   ├── 04-build.ps1         # npm ci + build Vite
 │   ├── 05-iis-site.ps1      # Crée AppPool + Site + bindings
-│   └── 99-uninstall.ps1     # Désinstalle (site IIS + DB seulement)
+│   ├── 06-postgrest.ps1     # PostgREST + NSSM (service Windows)
+│   └── 99-uninstall.ps1     # Désinstalle (site IIS + DB + PostgREST)
 ├── config/
 │   ├── web.config           # Réécriture SPA + compression
 │   └── env.production.tpl   # Template .env (édité par 04-build)
 └── sql/
     └── schema.sql           # Schéma complet (généré depuis migrations Supabase)
+```
+
+## PostgREST — utilisation
+
+Une fois installé (étape 6/6), PostgREST tourne en service Windows automatique :
+
+- **Endpoint** : `http://localhost:3000`
+- **Service Windows** : `PostgREST` (gérable via `services.msc` ou `nssm`)
+- **Config** : `C:\PostgREST\postgrest.conf`
+- **Identifiants** (JWT secret, mots de passe rôles) : `C:\PostgREST\credentials.txt` (lecture admin uniquement)
+- **Logs** : `C:\PostgREST\postgrest.log` et `postgrest.err.log`
+
+Tester : `curl http://localhost:3000/clients` (retourne `[]` si la table est vide et que `web_anon` a les droits SELECT).
+
+Pour signer un JWT côté backend avec le secret stocké :
+```js
+import jwt from "jsonwebtoken";
+const token = jwt.sign({ role: "authenticated", sub: userId }, JWT_SECRET, { expiresIn: "1h" });
+// Puis : fetch("http://localhost:3000/clients", { headers: { Authorization: `Bearer ${token}` }})
 ```
 
 ## Désinstallation
