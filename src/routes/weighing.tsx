@@ -42,12 +42,15 @@ export const Route = createFileRoute("/weighing")({
   ),
 });
 
+type ServiceTab = "all" | "crushing" | "weigh_simple" | "weigh_double";
+
 function WeighingListPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { arrival: arrivalParam } = Route.useSearch();
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"pending" | "all">("pending");
+  const [serviceTab, setServiceTab] = useState<ServiceTab>("all");
+  const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
 
   // Compat : si quelqu'un arrive avec ?arrival=ID, on redirige vers la page dédiée.
   useEffect(() => {
@@ -57,7 +60,7 @@ function WeighingListPage() {
   }, [arrivalParam, navigate]);
 
   const { data: arrivals, isLoading } = useQuery({
-    queryKey: ["weighing-arrivals", filter],
+    queryKey: ["weighing-arrivals", statusFilter],
     queryFn: async () => {
       const start = new Date();
       start.setHours(0, 0, 0, 0);
@@ -67,7 +70,7 @@ function WeighingListPage() {
         .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(200);
-      if (filter === "pending") q = q.gte("created_at", start.toISOString());
+      if (statusFilter === "pending") q = q.gte("created_at", start.toISOString());
       const { data, error } = await q;
       if (error) throw error;
       return data as unknown as EnrichedArrival[];
@@ -75,15 +78,35 @@ function WeighingListPage() {
     refetchInterval: 30_000,
   });
 
+  const counts = useMemo(() => {
+    const c = { all: 0, crushing: 0, weigh_simple: 0, weigh_double: 0 };
+    if (!arrivals) return c;
+    for (const a of arrivals) {
+      const isPending =
+        a.service_type === "weigh_double"
+          ? a.weighings.length < 2
+          : a.weighings.length === 0;
+      if (statusFilter === "pending" && !isPending) continue;
+      c.all += 1;
+      if (a.service_type === "crushing") c.crushing += 1;
+      else if (a.service_type === "weigh_simple") c.weigh_simple += 1;
+      else if (a.service_type === "weigh_double") c.weigh_double += 1;
+    }
+    return c;
+  }, [arrivals, statusFilter]);
+
   const filtered = useMemo(() => {
     if (!arrivals) return [];
     let list = arrivals;
-    if (filter === "pending") {
+    if (statusFilter === "pending") {
       list = list.filter((a) => {
         if (a.service_type === "weigh_simple") return a.weighings.length === 0;
         if (a.service_type === "weigh_double") return a.weighings.length < 2;
         return a.weighings.length === 0;
       });
+    }
+    if (serviceTab !== "all") {
+      list = list.filter((a) => a.service_type === serviceTab);
     }
     const q = search.trim().toLowerCase();
     if (!q) return list;
@@ -93,14 +116,35 @@ function WeighingListPage() {
         (a.client?.full_name.toLowerCase().includes(q) ?? false) ||
         (a.client?.code.toLowerCase().includes(q) ?? false),
     );
-  }, [arrivals, search, filter]);
+  }, [arrivals, search, serviceTab, statusFilter]);
 
   return (
     <div className="space-y-6">
       <PageHeader title={t("weigh.title")} subtitle={t("weigh.subtitle")} icon={<Scale className="h-5 w-5" />} />
 
+      <Tabs value={serviceTab} onValueChange={(v) => setServiceTab(v as ServiceTab)}>
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="all">
+            {t("common.all")}
+            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.all}</span>
+          </TabsTrigger>
+          <TabsTrigger value="crushing">
+            {t("nav.crushing")}
+            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.crushing}</span>
+          </TabsTrigger>
+          <TabsTrigger value="weigh_simple">
+            {t("weigh.kind.simple")}
+            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.weigh_simple}</span>
+          </TabsTrigger>
+          <TabsTrigger value="weigh_double">
+            {t("weigh.kind.first")}/{t("weigh.kind.second")}
+            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.weigh_double}</span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
           <TabsList>
             <TabsTrigger value="pending">{t("weigh.pending")}</TabsTrigger>
             <TabsTrigger value="all">{t("common.all")}</TabsTrigger>
