@@ -253,6 +253,8 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const kind: WeighingKind = useMemo(() => {
     if (!arrival) return "simple";
     if (arrival.service_type === "weigh_double") {
       const hasFirst = arrival.weighings.some((w) => w.kind === "first");
