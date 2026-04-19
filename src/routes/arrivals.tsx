@@ -59,10 +59,25 @@ type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
 type ServiceType = Database["public"]["Enums"]["service_type"];
 type ArrivalStatus = Database["public"]["Enums"]["arrival_status"];
 
+type Product = {
+  id: string;
+  code: string;
+  name: string;
+  name_ar: string | null;
+  category: "olive" | "oil" | "byproduct" | "service";
+  color: string | null;
+  is_active: boolean;
+};
+
 interface EnrichedArrival extends Arrival {
   client: Client | null;
   vehicle: Vehicle | null;
+  product: Product | null;
 }
+
+// Bypass typing en attendant la régénération des types Supabase (colonne product_id)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sb: any = supabase;
 
 export const Route = createFileRoute("/arrivals")({
   component: () => (
