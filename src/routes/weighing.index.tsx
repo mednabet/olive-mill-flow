@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight, Plus } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -28,11 +28,13 @@ type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type Vehicle = Database["public"]["Tables"]["vehicles"]["Row"];
 type Weighing = Database["public"]["Tables"]["weighings"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
 
 interface EnrichedArrival extends Arrival {
   client: Client | null;
   vehicle: Vehicle | null;
   weighings: Weighing[];
+  product: Product | null;
 }
 
 export const Route = createFileRoute("/weighing/")({
@@ -48,14 +50,29 @@ export const Route = createFileRoute("/weighing/")({
 
 type ServiceTab = "all" | "crushing" | "weigh_simple" | "weigh_double";
 
+const SERVICE_TAB_KEY = "weighing.service_tab";
+
+function readInitialTab(): ServiceTab {
+  if (typeof window === "undefined") return "crushing";
+  const v = window.localStorage.getItem(SERVICE_TAB_KEY);
+  if (v === "all" || v === "crushing" || v === "weigh_simple" || v === "weigh_double") return v;
+  return "crushing";
+}
+
 function WeighingListPage() {
   const { t } = useI18n();
   const { arrival: arrivalParam } = Route.useSearch();
   const [search, setSearch] = useState("");
-  const [serviceTab, setServiceTab] = useState<ServiceTab>("all");
+  const [serviceTab, setServiceTab] = useState<ServiceTab>(() => readInitialTab());
   const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
   const [openArrivalId, setOpenArrivalId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SERVICE_TAB_KEY, serviceTab);
+    }
+  }, [serviceTab]);
 
   // Compat : si on arrive avec ?arrival=ID, on ouvre directement le sheet.
   useEffect(() => {
@@ -69,7 +86,9 @@ function WeighingListPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("arrivals")
-        .select("*, client:clients(*), vehicle:vehicles(*), weighings(*)")
+        .select(
+          "*, client:clients(*), vehicle:vehicles(*), weighings(*), product:products(*)",
+        )
         .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(500);
