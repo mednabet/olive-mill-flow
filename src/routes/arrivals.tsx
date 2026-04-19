@@ -271,6 +271,18 @@ function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
               <Badge variant="secondary" className="text-xs">
                 {t(SERVICE_LABEL[arrival.service_type])}
               </Badge>
+              {arrival.product && (
+                <Badge
+                  variant="outline"
+                  className="text-xs"
+                  style={{
+                    borderColor: arrival.product.color ?? undefined,
+                    color: arrival.product.color ?? undefined,
+                  }}
+                >
+                  {arrival.product.name}
+                </Badge>
+              )}
             </div>
             <div className="mt-1 truncate text-sm">
               {arrival.client ? (
