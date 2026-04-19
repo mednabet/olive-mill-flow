@@ -527,7 +527,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const second = arrival.weighings.find((w) => w.kind === "second");
   const net =
     simple?.weight_kg ??
-    (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
+    (first && second ? Math.abs(second.weight_kg - first.weight_kg) : null);
 
   const hasAnyWeighing = arrival.weighings.length > 0;
   const canCancel =

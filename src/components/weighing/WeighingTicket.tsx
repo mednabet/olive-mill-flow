@@ -26,7 +26,7 @@ export function WeighingTicket({ arrival, client, vehicle, weighings, product }:
   const second = weighings.find((w) => w.kind === "second");
   const gross = simple?.weight_kg ?? second?.weight_kg ?? null;
   const tare = first?.weight_kg ?? null;
-  const net = gross !== null && tare !== null ? gross - tare : simple?.weight_kg ?? null;
+  const net = gross !== null && tare !== null ? Math.abs(gross - tare) : simple?.weight_kg ?? null;
 
   return (
     <div className="ticket-print mx-auto max-w-xs rounded-lg border-2 border-dashed border-border bg-white p-4 font-sans text-black shadow-sm print:max-w-none print:border-0 print:p-0 print:shadow-none">

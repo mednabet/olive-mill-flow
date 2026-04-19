@@ -238,7 +238,7 @@ function NewCrushingDialog({ open, onOpenChange }: { open: boolean; onOpenChange
       const s = arrival.weighings.find((w) => w.kind === "second");
       const gross = sim?.weight_kg ?? s?.weight_kg ?? null;
       const tare = f?.weight_kg ?? null;
-      const net = sim?.weight_kg ?? (gross !== null && tare !== null ? gross - tare : null);
+      const net = sim?.weight_kg ?? (gross !== null && tare !== null ? Math.abs(gross - tare) : null);
 
       const { error } = await supabase.from("crushing_files").insert({
         arrival_id: arrival.id,
