@@ -136,6 +136,40 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     enabled: arrival?.needs_crushing === true,
   });
 
+  // Données du dossier d'écrasement (pour le ticket d'impression / bandeau)
+  const { data: crushingFileData } = useQuery({
+    queryKey: ["crushing-file-for-print", createdCrushingFileId],
+    enabled: !!createdCrushingFileId,
+    queryFn: async () => {
+      if (!createdCrushingFileId) return null;
+      const { data: file, error } = await supabase
+        .from("crushing_files")
+        .select("*, line:crushing_lines!assigned_line_id(*), client:clients(*)")
+        .eq("id", createdCrushingFileId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!file) return null;
+      const { data: links, error: linksErr } = await supabase
+        .from("crushing_file_arrivals")
+        .select("net_weight_kg, arrival:arrivals!arrival_id(ticket_number)")
+        .eq("crushing_file_id", createdCrushingFileId);
+      if (linksErr) throw linksErr;
+      // Si pas de lignes cfa (cas nouveau dossier sans rattachement), construire une ligne fictive avec l'arrivée elle-même
+      const attachedArrivals =
+        links && links.length > 0
+          ? links.map((l) => ({
+              ticket_number:
+                (l.arrival as unknown as { ticket_number: string } | null)
+                  ?.ticket_number ?? "—",
+              net_weight_kg: l.net_weight_kg,
+            }))
+          : arrival
+            ? [{ ticket_number: arrival.ticket_number, net_weight_kg: file.net_weight_kg }]
+            : [];
+      return { file, attachedArrivals };
+    },
+  });
+
   const setProduct = useMutation({
     mutationFn: async (newProductId: string) => {
       const { error } = await supabase
