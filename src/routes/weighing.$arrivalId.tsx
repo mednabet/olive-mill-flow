@@ -169,18 +169,108 @@ function WeighingArrivalPage() {
 
       const isDoubleDone = arrival.service_type === "weigh_double" && kind === "second";
       const isSimpleDone = arrival.service_type !== "weigh_double" && kind === "simple";
-      if (isDoubleDone || isSimpleDone) {
+      const fullyWeighed = isDoubleDone || isSimpleDone;
+
+      let crushingCode: string | null = null;
+      if (fullyWeighed) {
         await supabase.from("arrivals").update({ status: "routed" }).eq("id", arrival.id);
+
+        // Si l'arrivée est de type "écrasement", créer automatiquement
+        // le dossier d'écrasement et l'entrée stock client (olives).
+        if (arrival.service_type === "crushing") {
+          // Calcul net définitif (à partir des pesées + la nouvelle qu'on vient d'insérer).
+          const simpleW = arrival.weighings.find((x) => x.kind === "simple")?.weight_kg
+            ?? (kind === "simple" ? w : null);
+          const firstW = arrival.weighings.find((x) => x.kind === "first")?.weight_kg
+            ?? (kind === "first" ? w : null);
+          const secondW = arrival.weighings.find((x) => x.kind === "second")?.weight_kg
+            ?? (kind === "second" ? w : null);
+          const grossKg = simpleW ?? secondW ?? null;
+          const tareKg = firstW ?? null;
+          const netKg = simpleW ?? (grossKg !== null && tareKg !== null ? Math.max(0, grossKg - tareKg) : null);
+
+          if (netKg !== null && netKg > 0) {
+            // Vérifie qu'aucun dossier n'existe déjà pour cette arrivée (idempotence).
+            const { data: existing } = await supabase
+              .from("crushing_files")
+              .select("id, tracking_code")
+              .eq("arrival_id", arrival.id)
+              .maybeSingle();
+
+            if (existing) {
+              crushingCode = existing.tracking_code;
+            } else {
+              const { data: codeData, error: codeErr } = await supabase.rpc("next_crushing_code");
+              if (codeErr) throw codeErr;
+              const code = codeData as string;
+
+              const { data: cf, error: cfErr } = await supabase
+                .from("crushing_files")
+                .insert({
+                  arrival_id: arrival.id,
+                  client_id: arrival.client_id,
+                  tracking_code: code,
+                  gross_weight_kg: grossKg,
+                  tare_weight_kg: tareKg,
+                  net_weight_kg: netKg,
+                  status: "queued",
+                  priority: "normal",
+                  created_by: user?.id ?? null,
+                })
+                .select("id")
+                .single();
+              if (cfErr) throw cfErr;
+              crushingCode = code;
+
+              // Création lot stock client_olives + mouvement d'entrée.
+              const { data: lotCode, error: lotCodeErr } = await supabase.rpc("next_lot_code", {
+                _kind: "client_olives",
+              });
+              if (lotCodeErr) throw lotCodeErr;
+
+              const { data: lot, error: lotErr } = await supabase
+                .from("stock_lots")
+                .insert({
+                  lot_code: lotCode as string,
+                  kind: "client_olives",
+                  client_id: arrival.client_id,
+                  crushing_file_id: cf.id,
+                  quantity_kg: 0, // sera recalculé par le trigger via stock_movements
+                  notes: `Auto: arrivée ${arrival.ticket_number}`,
+                })
+                .select("id")
+                .single();
+              if (lotErr) throw lotErr;
+
+              const { error: mvErr } = await supabase.from("stock_movements").insert({
+                lot_id: lot.id,
+                movement_type: "in",
+                quantity_kg: netKg,
+                reference_id: cf.id,
+                reason: `Pesage arrivée ${arrival.ticket_number}`,
+                created_by: user?.id ?? null,
+              });
+              if (mvErr) throw mvErr;
+            }
+          }
+        }
       }
-      return { isDoubleDone, isSimpleDone };
+      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode };
     },
-    onSuccess: async ({ isDoubleDone, isSimpleDone }) => {
+    onSuccess: async ({ fullyWeighed, crushingCode }) => {
       await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
       await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
       await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      await qc.invalidateQueries({ queryKey: ["crushing-files"] });
+      await qc.invalidateQueries({ queryKey: ["queue-files"] });
+      await qc.invalidateQueries({ queryKey: ["stock-lots"] });
       reset();
-      if (isDoubleDone || isSimpleDone) {
-        toast.success(t("weigh.second_done", ""));
+      if (fullyWeighed) {
+        if (crushingCode) {
+          toast.success(t("weigh.crushing_created", crushingCode));
+        } else {
+          toast.success(t("weigh.second_done", ""));
+        }
         setPrintOpen(true);
       } else {
         toast.success(t("weigh.first_done"));
