@@ -482,48 +482,6 @@ export type Database = {
         }
         Relationships: []
       }
-      olive_varieties: {
-        Row: {
-          avg_yield_percent: number | null
-          code: string
-          color: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          is_active: boolean
-          name: string
-          name_ar: string | null
-          notes: string | null
-          updated_at: string
-        }
-        Insert: {
-          avg_yield_percent?: number | null
-          code: string
-          color?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          is_active?: boolean
-          name: string
-          name_ar?: string | null
-          notes?: string | null
-          updated_at?: string
-        }
-        Update: {
-          avg_yield_percent?: number | null
-          code?: string
-          color?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          is_active?: boolean
-          name?: string
-          name_ar?: string | null
-          notes?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       payments: {
         Row: {
           amount: number
@@ -624,6 +582,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      products: {
+        Row: {
+          avg_yield_percent: number | null
+          category: Database["public"]["Enums"]["product_category"]
+          code: string
+          color: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          notes: string | null
+          unit: Database["public"]["Enums"]["product_unit"]
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_yield_percent?: number | null
+          category: Database["public"]["Enums"]["product_category"]
+          code: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          unit?: Database["public"]["Enums"]["product_unit"]
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_yield_percent?: number | null
+          category?: Database["public"]["Enums"]["product_category"]
+          code?: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          unit?: Database["public"]["Enums"]["product_unit"]
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -996,6 +1005,8 @@ export type Database = {
       notification_status: "pending" | "sent" | "failed"
       payment_method: "cash" | "transfer" | "card" | "other"
       priority_level: "normal" | "high" | "urgent"
+      product_category: "olive" | "oil" | "byproduct" | "service"
+      product_unit: "kg" | "liter" | "unit" | "service"
       scale_kind: "scale" | "truck_scale"
       service_type: "weigh_simple" | "weigh_double" | "crushing"
       stock_kind:
@@ -1156,6 +1167,8 @@ export const Constants = {
       notification_status: ["pending", "sent", "failed"],
       payment_method: ["cash", "transfer", "card", "other"],
       priority_level: ["normal", "high", "urgent"],
+      product_category: ["olive", "oil", "byproduct", "service"],
+      product_unit: ["kg", "liter", "unit", "service"],
       scale_kind: ["scale", "truck_scale"],
       service_type: ["weigh_simple", "weigh_double", "crushing"],
       stock_kind: [
