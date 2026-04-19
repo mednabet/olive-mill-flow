@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle, Factory } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -237,7 +237,7 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
   const first = arrival.weighings.find((w) => w.kind === "first");
   const second = arrival.weighings.find((w) => w.kind === "second");
   const isDouble = arrival.service_type === "weigh_double";
-  const isCrushing = arrival.service_type === "crushing";
+  const isCrushing = arrival.needs_crushing;
   const net =
     simple?.weight_kg ??
     (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
@@ -260,7 +260,17 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
               <StatusBadge tone={fullyDone ? "success" : "warning"}>
                 {fullyDone ? t("common.success") : t("weigh.no_weight_yet")}
               </StatusBadge>
-              {isDouble && <StatusBadge tone="info">{t("weigh.kind.first")}/{t("weigh.kind.second")}</StatusBadge>}
+              {isDouble ? (
+                <StatusBadge tone="info">{t("weigh.kind.first")}/{t("weigh.kind.second")}</StatusBadge>
+              ) : (
+                <StatusBadge tone="info">{t("weigh.kind.simple")}</StatusBadge>
+              )}
+              {isCrushing && (
+                <StatusBadge tone="info">
+                  <Factory className="me-1 inline h-3 w-3" />
+                  {t("nav.crushing")}
+                </StatusBadge>
+              )}
               {isCrushing && arrival.product && (
                 <span
                   className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
