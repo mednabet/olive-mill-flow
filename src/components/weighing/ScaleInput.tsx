@@ -57,12 +57,16 @@ export function ScaleInput({
   onReasonChange,
   allowManual,
   scaleUrl,
+  scalePollIntervalMs,
   scaleName,
   autoFocus,
   label,
 }: Props) {
   const { t } = useI18n();
-  const reader = useScaleReader(source === "scale" ? scaleUrl : null);
+  const reader = useScaleReader(
+    source === "scale" ? scaleUrl : null,
+    scalePollIntervalMs ?? 1000,
+  );
 
   // Si lecture stable & source scale → pré-remplir au survol mais NE PAS écraser une saisie manuelle
   useEffect(() => {
