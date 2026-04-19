@@ -334,6 +334,19 @@ function WeighingRow({
               {net !== null && <span className="font-bold text-foreground">{t("weigh.net")}: {formatKg(net)}</span>}
             </div>
           </div>
+          {isCrushing && (
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t("assign.action_label")}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAssign();
+              }}
+            >
+              <Link2 className="h-4 w-4" />
+            </Button>
+          )}
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </CardContent>
       </Card>
