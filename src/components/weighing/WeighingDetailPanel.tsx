@@ -34,6 +34,7 @@ type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type Vehicle = Database["public"]["Tables"]["vehicles"]["Row"];
 type Weighing = Database["public"]["Tables"]["weighings"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
 type WeighingKind = Database["public"]["Enums"]["weighing_kind"];
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -41,6 +42,7 @@ interface EnrichedArrival extends Arrival {
   client: Client | null;
   vehicle: Vehicle | null;
   weighings: Weighing[];
+  product: Product | null;
 }
 
 const KIND_LABEL: Record<WeighingKind, TranslationKey> = {
@@ -93,12 +95,44 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("arrivals")
-        .select("*, client:clients(*), vehicle:vehicles(*), weighings(*)")
+        .select("*, client:clients(*), vehicle:vehicles(*), weighings(*), product:products(*)")
         .eq("id", arrivalId)
         .maybeSingle();
       if (error) throw error;
       return (data as unknown as EnrichedArrival) ?? null;
     },
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ["products", "olive", "active"],
+    queryFn: async (): Promise<Product[]> => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("category", "olive")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: arrival?.service_type === "crushing",
+  });
+
+  const setProduct = useMutation({
+    mutationFn: async (newProductId: string) => {
+      const { error } = await supabase
+        .from("arrivals")
+        .update({ product_id: newProductId || null })
+        .eq("id", arrivalId);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
+      await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["arrivals"] });
+      toast.success(t("common.saved"));
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const isPrivileged = (roles ?? []).some(
