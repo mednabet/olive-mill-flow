@@ -61,7 +61,7 @@ $ScriptsDir = Join-Path $DeployRoot "scripts"
 
 try {
     if (-not $SkipPrereqs) {
-        Write-Step "1/5 - Installation des prerequis (IIS, URL Rewrite, Node)"
+        Write-Step "1/6 - Installation des prerequis (IIS, URL Rewrite, Node)"
         & (Join-Path $ScriptsDir "01-prereqs.ps1")
         if ($LASTEXITCODE -ne 0) { throw "Echec installation prerequis" }
         Write-Ok "Prerequis installes"
@@ -70,7 +70,7 @@ try {
     }
 
     if (-not $SkipPostgres) {
-        Write-Step "2/5 - Installation PostgreSQL 16"
+        Write-Step "2/6 - Installation PostgreSQL 16"
         & (Join-Path $ScriptsDir "02-postgres.ps1") -SuperPassword $pgSuperPwd
         if ($LASTEXITCODE -ne 0) { throw "Echec installation PostgreSQL" }
         Write-Ok "PostgreSQL installe"
@@ -78,7 +78,7 @@ try {
         Write-Warn2 "Etape PostgreSQL ignoree (-SkipPostgres)"
     }
 
-    Write-Step "3/5 - Creation de la base de donnees et application du schema"
+    Write-Step "3/6 - Creation de la base de donnees et application du schema"
     & (Join-Path $ScriptsDir "03-database.ps1") `
         -SuperPassword $pgSuperPwd `
         -AppPassword $appUserPwd `
