@@ -14,6 +14,7 @@
  *  - Si url vide ou non défini → reste en "idle"
  */
 import { useEffect, useRef, useState, useCallback } from "react";
+import { fetchScalePayload } from "@/lib/scaleProxy";
 
 export type ScaleStatus = "idle" | "connecting" | "connected" | "error";
 
