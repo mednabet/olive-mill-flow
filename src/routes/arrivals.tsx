@@ -6,7 +6,7 @@
  * - Affichage du ticket imprimable après création
  * - Liste des arrivées du jour (filtre)
  */
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
