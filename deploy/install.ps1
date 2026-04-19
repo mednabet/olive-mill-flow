@@ -10,7 +10,9 @@ param(
     [string]$DbUser = "oliveapp_user",
     [switch]$SkipPrereqs,
     [switch]$SkipPostgres,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$SkipPostgrest,
+    [int]$PostgrestPort = 3000
 )
 
 $ErrorActionPreference = "Stop"
