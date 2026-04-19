@@ -17,6 +17,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PrintLayout } from "@/components/PrintLayout";
 import { WeighingTicket } from "@/components/weighing/WeighingTicket";
+import { CrushingTicket } from "@/components/crushing/CrushingTicket";
 import { ScaleInput, type WeighingSourceUI } from "@/components/weighing/ScaleInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,8 +76,10 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const { data: allowCancelCfg } = useAllowCancelByPeseur();
 
   const [printOpen, setPrintOpen] = useState(false);
+  const [printCrushingOpen, setPrintCrushingOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
+  const [createdCrushingFileId, setCreatedCrushingFileId] = useState<string | null>(null);
 
   const [weight, setWeight] = useState("");
   const [source, setSource] = useState<WeighingSourceUI>("scale");
