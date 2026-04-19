@@ -88,7 +88,7 @@ try {
     Write-Ok "Base $DbName prete"
 
     if (-not $SkipBuild) {
-        Write-Step "4/5 - Build du frontend"
+        Write-Step "4/6 - Build du frontend"
         & (Join-Path $ScriptsDir "04-build.ps1") `
             -ProjectRoot (Split-Path -Parent $DeployRoot) `
             -ApiUrl $apiUrl
@@ -98,7 +98,7 @@ try {
         Write-Warn2 "Etape build ignoree (-SkipBuild)"
     }
 
-    Write-Step "5/5 - Configuration IIS"
+    Write-Step "5/6 - Configuration IIS"
     & (Join-Path $ScriptsDir "05-iis-site.ps1") `
         -SiteName $SiteName `
         -HttpPort $HttpPort `
@@ -106,6 +106,18 @@ try {
         -ProjectRoot (Split-Path -Parent $DeployRoot)
     if ($LASTEXITCODE -ne 0) { throw "Echec configuration IIS" }
     Write-Ok "Site IIS '$SiteName' deploye"
+
+    if (-not $SkipPostgrest) {
+        Write-Step "6/6 - Installation PostgREST (API REST locale)"
+        & (Join-Path $ScriptsDir "06-postgrest.ps1") `
+            -SuperPassword $pgSuperPwd `
+            -DbName $DbName `
+            -Port $PostgrestPort
+        if ($LASTEXITCODE -ne 0) { throw "Echec installation PostgREST" }
+        Write-Ok "PostgREST deploye sur le port $PostgrestPort"
+    } else {
+        Write-Warn2 "Etape PostgREST ignoree (-SkipPostgrest)"
+    }
 
     Write-Step "Termine"
     Write-Host ""
