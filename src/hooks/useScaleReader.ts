@@ -168,24 +168,23 @@ export function useScaleReader(
       return;
     }
 
-    // HTTP polling — passe par le proxy server-side pour éviter les erreurs CORS
+    // HTTP polling — passe par la server function (proxy Worker) pour contourner CORS
     const interval = Math.max(200, pollIntervalMs || 1000);
     let firstSuccess = false;
-    const proxyUrl = `/api/scale-proxy?url=${encodeURIComponent(url!)}`;
 
     const tick = async () => {
       if (!enabled.current) return;
       const ac = new AbortController();
       abortRef.current = ac;
       try {
-        const res = await fetch(proxyUrl, {
-          method: "GET",
-          cache: "no-store",
+        const result = await fetchScalePayload({
+          data: { url: url! },
           signal: ac.signal,
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        const parsed = parseTextReading(text);
+        if (ac.signal.aborted) return;
+        if (!result.ok) throw new Error(result.error || `HTTP ${result.status}`);
+
+        const parsed = parseTextReading(result.text);
         if (parsed) {
           if (!firstSuccess) {
             firstSuccess = true;
@@ -199,7 +198,6 @@ export function useScaleReader(
           // Ligne reçue = erreur (ex: "e- ...")
           setStatus("error");
         }
-        // Schedule next poll
         if (enabled.current) {
           pollTimer.current = window.setTimeout(tick, interval);
         }
@@ -207,7 +205,6 @@ export function useScaleReader(
         if ((err as Error).name === "AbortError") return;
         setStatus("error");
         if (enabled.current) {
-          // backoff sur erreur, puis reprise du polling normal
           scheduleRetry(() => {
             firstSuccess = false;
             setStatus("connecting");
