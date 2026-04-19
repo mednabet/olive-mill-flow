@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          needs_crushing: boolean
           notes: string | null
           product_id: string | null
           service_type: Database["public"]["Enums"]["service_type"]
@@ -34,6 +35,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          needs_crushing?: boolean
           notes?: string | null
           product_id?: string | null
           service_type: Database["public"]["Enums"]["service_type"]
@@ -47,6 +49,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          needs_crushing?: boolean
           notes?: string | null
           product_id?: string | null
           service_type?: Database["public"]["Enums"]["service_type"]
