@@ -22,7 +22,6 @@ import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WeighingIndexRouteImport } from './routes/weighing.index'
 import { Route as ArrivalsIndexRouteImport } from './routes/arrivals.index'
-import { Route as WeighingArrivalIdRouteImport } from './routes/weighing.$arrivalId'
 import { Route as ArrivalsArrivalIdRouteImport } from './routes/arrivals.$arrivalId'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -95,11 +94,6 @@ const ArrivalsIndexRoute = ArrivalsIndexRouteImport.update({
   path: '/arrivals/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WeighingArrivalIdRoute = WeighingArrivalIdRouteImport.update({
-  id: '/weighing/$arrivalId',
-  path: '/weighing/$arrivalId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ArrivalsArrivalIdRoute = ArrivalsArrivalIdRouteImport.update({
   id: '/arrivals/$arrivalId',
   path: '/arrivals/$arrivalId',
@@ -149,7 +143,6 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/arrivals/$arrivalId': typeof ArrivalsArrivalIdRoute
-  '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
   '/arrivals/': typeof ArrivalsIndexRoute
   '/weighing/': typeof WeighingIndexRoute
 }
@@ -171,7 +164,6 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/arrivals/$arrivalId': typeof ArrivalsArrivalIdRoute
-  '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
   '/arrivals': typeof ArrivalsIndexRoute
   '/weighing': typeof WeighingIndexRoute
 }
@@ -194,7 +186,6 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/arrivals/$arrivalId': typeof ArrivalsArrivalIdRoute
-  '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
   '/arrivals/': typeof ArrivalsIndexRoute
   '/weighing/': typeof WeighingIndexRoute
 }
@@ -218,7 +209,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/arrivals/$arrivalId'
-    | '/weighing/$arrivalId'
     | '/arrivals/'
     | '/weighing/'
   fileRoutesByTo: FileRoutesByTo
@@ -240,7 +230,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/arrivals/$arrivalId'
-    | '/weighing/$arrivalId'
     | '/arrivals'
     | '/weighing'
   id:
@@ -262,7 +251,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/arrivals/$arrivalId'
-    | '/weighing/$arrivalId'
     | '/arrivals/'
     | '/weighing/'
   fileRoutesById: FileRoutesById
@@ -285,7 +273,6 @@ export interface RootRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   ArrivalsArrivalIdRoute: typeof ArrivalsArrivalIdRoute
-  WeighingArrivalIdRoute: typeof WeighingArrivalIdRoute
   ArrivalsIndexRoute: typeof ArrivalsIndexRoute
   WeighingIndexRoute: typeof WeighingIndexRoute
 }
@@ -383,13 +370,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArrivalsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/weighing/$arrivalId': {
-      id: '/weighing/$arrivalId'
-      path: '/weighing/$arrivalId'
-      fullPath: '/weighing/$arrivalId'
-      preLoaderRoute: typeof WeighingArrivalIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/arrivals/$arrivalId': {
       id: '/arrivals/$arrivalId'
       path: '/arrivals/$arrivalId'
@@ -453,7 +433,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   ArrivalsArrivalIdRoute: ArrivalsArrivalIdRoute,
-  WeighingArrivalIdRoute: WeighingArrivalIdRoute,
   ArrivalsIndexRoute: ArrivalsIndexRoute,
   WeighingIndexRoute: WeighingIndexRoute,
 }
