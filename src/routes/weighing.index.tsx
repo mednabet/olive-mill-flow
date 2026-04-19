@@ -236,10 +236,12 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
   const first = arrival.weighings.find((w) => w.kind === "first");
   const second = arrival.weighings.find((w) => w.kind === "second");
   const isDouble = arrival.service_type === "weigh_double";
+  const isCrushing = arrival.service_type === "crushing";
   const net =
     simple?.weight_kg ??
     (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
   const fullyDone = isDouble ? !!(first && second) : !!simple;
+  const missingProduct = isCrushing && !arrival.product_id;
 
   return (
     <li>
@@ -258,15 +260,39 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
                 {fullyDone ? t("common.success") : t("weigh.no_weight_yet")}
               </StatusBadge>
               {isDouble && <StatusBadge tone="info">{t("weigh.kind.first")}/{t("weigh.kind.second")}</StatusBadge>}
+              {isCrushing && arrival.product && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+                  style={{
+                    borderColor: arrival.product.color ?? undefined,
+                    color: arrival.product.color ?? undefined,
+                  }}
+                >
+                  <Leaf className="h-3 w-3" />
+                  {arrival.product.name}
+                </span>
+              )}
+              {missingProduct && (
+                <StatusBadge tone="warning">
+                  <AlertTriangle className="me-1 inline h-3 w-3" />
+                  {t("weigh.no_product")}
+                </StatusBadge>
+              )}
             </div>
-            <div className="mt-1 truncate text-sm">
+            <div className="mt-1 flex flex-wrap items-center gap-3 truncate text-sm">
               {arrival.client ? (
-                <>
+                <span className="truncate">
                   <span className="font-medium">{arrival.client.full_name}</span>
                   <span className="font-mono text-xs text-muted-foreground tabular ms-2">{arrival.client.code}</span>
-                </>
+                </span>
               ) : (
                 <span className="italic text-muted-foreground">—</span>
+              )}
+              {arrival.vehicle && (
+                <span className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 font-mono text-xs tabular" dir="ltr">
+                  <Car className="h-3 w-3" />
+                  {arrival.vehicle.plate}
+                </span>
               )}
             </div>
             <div className="mt-0.5 flex flex-wrap gap-3 text-xs text-muted-foreground tabular">
