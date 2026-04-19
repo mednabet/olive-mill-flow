@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle, Factory } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle, Factory, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -22,6 +22,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { WeighingDetailPanel } from "@/components/weighing/WeighingDetailPanel";
 import { NewArrivalDialog } from "@/components/arrivals/NewArrivalDialog";
+import { AssignCrushingFileDialog } from "@/components/crushing/AssignCrushingFileDialog";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
@@ -67,6 +68,7 @@ function WeighingListPage() {
   const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
   const [openArrivalId, setOpenArrivalId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [assignTarget, setAssignTarget] = useState<EnrichedArrival | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -208,6 +210,7 @@ function WeighingListPage() {
               key={a.id}
               arrival={a}
               onOpen={() => setOpenArrivalId(a.id)}
+              onAssign={() => setAssignTarget(a)}
             />
           ))}
         </ul>
@@ -227,11 +230,29 @@ function WeighingListPage() {
         onOpenChange={setShowNew}
         onCreated={(id) => setOpenArrivalId(id)}
       />
+
+      {assignTarget && (
+        <AssignCrushingFileDialog
+          open={!!assignTarget}
+          onOpenChange={(o) => !o && setAssignTarget(null)}
+          arrivalId={assignTarget.id}
+          clientId={assignTarget.client_id}
+          arrivalTicket={assignTarget.ticket_number}
+        />
+      )}
     </div>
   );
 }
 
-function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: () => void }) {
+function WeighingRow({
+  arrival,
+  onOpen,
+  onAssign,
+}: {
+  arrival: EnrichedArrival;
+  onOpen: () => void;
+  onAssign: () => void;
+}) {
   const { t } = useI18n();
   const simple = arrival.weighings.find((w) => w.kind === "simple");
   const first = arrival.weighings.find((w) => w.kind === "first");
@@ -313,6 +334,19 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
               {net !== null && <span className="font-bold text-foreground">{t("weigh.net")}: {formatKg(net)}</span>}
             </div>
           </div>
+          {isCrushing && (
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t("assign.action_label")}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAssign();
+              }}
+            >
+              <Link2 className="h-4 w-4" />
+            </Button>
+          )}
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </CardContent>
       </Card>
