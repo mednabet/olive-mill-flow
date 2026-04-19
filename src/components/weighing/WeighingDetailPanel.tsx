@@ -168,6 +168,9 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const save = useMutation({
     mutationFn: async () => {
       if (!arrival) throw new Error("no arrival");
+      if (arrival.service_type === "crushing" && !arrival.product_id) {
+        throw new Error(t("weigh.product_required"));
+      }
       const w = parseFloat(weight);
       if (!Number.isFinite(w) || w < 0) throw new Error(t("validation.positive"));
       if (source === "manual" && !reason.trim())
