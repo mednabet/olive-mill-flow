@@ -56,3 +56,20 @@ export function useAllowManualConfig() {
     staleTime: 60_000,
   });
 }
+
+/** Réglage : autoriser un peseur à annuler une arrivée non pesée. */
+export function useAllowCancelByPeseur() {
+  return useQuery({
+    queryKey: ["settings", "arrival_cancel.allow_peseur"],
+    queryFn: async (): Promise<{ enabled: boolean }> => {
+      const { data } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "arrival_cancel.allow_peseur")
+        .maybeSingle();
+      const v = data?.value as { enabled?: boolean } | null;
+      return { enabled: v?.enabled ?? false };
+    },
+    staleTime: 60_000,
+  });
+}
