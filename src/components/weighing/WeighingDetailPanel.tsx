@@ -532,6 +532,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     !hasAnyWeighing &&
     arrival.status !== "cancelled" &&
     (isPrivileged || (isPeseur && (allowCancelCfg?.enabled ?? false)));
+  const canDelete = !hasAnyWeighing && (roles ?? []).includes("admin");
 
   return (
     <div className="space-y-6">
@@ -557,6 +558,17 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               <Button variant="outline" size="sm" onClick={() => setCancelOpen(true)}>
                 <XCircle className="me-1 h-4 w-4" />
                 {t("weigh.cancel_arrival")}
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteOpen(true)}
+                className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="me-1 h-4 w-4" />
+                {t("weigh.delete_arrival")}
               </Button>
             )}
           </div>
