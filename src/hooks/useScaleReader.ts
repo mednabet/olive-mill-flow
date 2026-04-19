@@ -167,16 +167,17 @@ export function useScaleReader(
       return;
     }
 
-    // HTTP polling
+    // HTTP polling — passe par le proxy server-side pour éviter les erreurs CORS
     const interval = Math.max(200, pollIntervalMs || 1000);
     let firstSuccess = false;
+    const proxyUrl = `/api/scale-proxy?url=${encodeURIComponent(url!)}`;
 
     const tick = async () => {
       if (!enabled.current) return;
       const ac = new AbortController();
       abortRef.current = ac;
       try {
-        const res = await fetch(url!, {
+        const res = await fetch(proxyUrl, {
           method: "GET",
           cache: "no-store",
           signal: ac.signal,
