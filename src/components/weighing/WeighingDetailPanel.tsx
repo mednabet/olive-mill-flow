@@ -1,20 +1,17 @@
 /**
- * Page dédiée à une arrivée pour pesage :
- * - Liste des pesées existantes (récap)
- * - Saisie inline d'une nouvelle pesée (simple/1ère/2ème selon service)
- * - Impression du bon de pesée
+ * Panel détail d'une arrivée (récap + saisie inline + impression).
+ * Conçu pour être ouvert dans un Sheet/Dialog depuis la liste,
+ * pour éviter une route dynamique (problème d'hydratation TanStack Start).
  */
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Scale, Printer, ArrowLeft } from "lucide-react";
+import { Scale, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
 import { useAllowManualConfig, useScales } from "@/lib/settings";
-import { RequireRole } from "@/components/RequireRole";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PrintLayout } from "@/components/PrintLayout";
@@ -23,13 +20,14 @@ import { ScaleInput, type WeighingSourceUI } from "@/components/weighing/ScaleIn
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
@@ -45,26 +43,20 @@ interface EnrichedArrival extends Arrival {
   weighings: Weighing[];
 }
 
-export const Route = createFileRoute("/weighing/$arrivalId")({
-  component: () => (
-    <RequireRole roles={["admin", "superviseur", "peseur"]}>
-      <WeighingArrivalPage />
-    </RequireRole>
-  ),
-});
-
 const KIND_LABEL: Record<WeighingKind, TranslationKey> = {
   simple: "weigh.kind.simple",
   first: "weigh.kind.first",
   second: "weigh.kind.second",
 };
 
-function WeighingArrivalPage() {
-  const { arrivalId } = Route.useParams();
+interface WeighingDetailPanelProps {
+  arrivalId: string;
+}
+
+export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const { t } = useI18n();
   const { user, profile, roles } = useAuth();
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const { data: scales } = useScales(false);
   const { data: allowManualCfg } = useAllowManualConfig();
 
@@ -109,7 +101,9 @@ function WeighingArrivalPage() {
     },
   });
 
-  const isPrivileged = (roles ?? []).some((r: AppRole) => r === "admin" || r === "superviseur");
+  const isPrivileged = (roles ?? []).some(
+    (r: AppRole) => r === "admin" || r === "superviseur",
+  );
   const allowManual = isPrivileged || (allowManualCfg?.enabled ?? true);
 
   const kind: WeighingKind = useMemo(() => {
@@ -142,7 +136,8 @@ function WeighingArrivalPage() {
       if (!arrival) throw new Error("no arrival");
       const w = parseFloat(weight);
       if (!Number.isFinite(w) || w < 0) throw new Error(t("validation.positive"));
-      if (source === "manual" && !reason.trim()) throw new Error(t("weigh.manual_reason_required"));
+      if (source === "manual" && !reason.trim())
+        throw new Error(t("weigh.manual_reason_required"));
       if (source === "manual" && !allowManual) throw new Error(t("weigh.manual_disabled"));
 
       const { error } = await supabase.from("weighings").insert({
@@ -167,30 +162,35 @@ function WeighingArrivalPage() {
         });
       }
 
-      const isDoubleDone = arrival.service_type === "weigh_double" && kind === "second";
-      const isSimpleDone = arrival.service_type !== "weigh_double" && kind === "simple";
+      const isDoubleDone =
+        arrival.service_type === "weigh_double" && kind === "second";
+      const isSimpleDone =
+        arrival.service_type !== "weigh_double" && kind === "simple";
       const fullyWeighed = isDoubleDone || isSimpleDone;
 
       let crushingCode: string | null = null;
       if (fullyWeighed) {
         await supabase.from("arrivals").update({ status: "routed" }).eq("id", arrival.id);
 
-        // Si l'arrivée est de type "écrasement", créer automatiquement
-        // le dossier d'écrasement et l'entrée stock client (olives).
         if (arrival.service_type === "crushing") {
-          // Calcul net définitif (en incluant la pesée qu'on vient d'insérer).
           const k: WeighingKind = kind;
-          const simpleW = arrival.weighings.find((x) => x.kind === "simple")?.weight_kg
-            ?? (k === "simple" ? w : null);
-          const firstW = arrival.weighings.find((x) => x.kind === "first")?.weight_kg ?? null;
-          const secondW = arrival.weighings.find((x) => x.kind === "second")?.weight_kg
-            ?? (k === "second" ? w : null);
+          const simpleW =
+            arrival.weighings.find((x) => x.kind === "simple")?.weight_kg ??
+            (k === "simple" ? w : null);
+          const firstW =
+            arrival.weighings.find((x) => x.kind === "first")?.weight_kg ?? null;
+          const secondW =
+            arrival.weighings.find((x) => x.kind === "second")?.weight_kg ??
+            (k === "second" ? w : null);
           const grossKg = simpleW ?? secondW ?? null;
           const tareKg = firstW;
-          const netKg = simpleW ?? (grossKg !== null && tareKg !== null ? Math.max(0, grossKg - tareKg) : null);
+          const netKg =
+            simpleW ??
+            (grossKg !== null && tareKg !== null
+              ? Math.max(0, grossKg - tareKg)
+              : null);
 
           if (netKg !== null && netKg > 0) {
-            // Vérifie qu'aucun dossier n'existe déjà pour cette arrivée (idempotence).
             const { data: existing } = await supabase
               .from("crushing_files")
               .select("id, tracking_code")
@@ -200,7 +200,9 @@ function WeighingArrivalPage() {
             if (existing) {
               crushingCode = existing.tracking_code;
             } else {
-              const { data: codeData, error: codeErr } = await supabase.rpc("next_crushing_code");
+              const { data: codeData, error: codeErr } = await supabase.rpc(
+                "next_crushing_code",
+              );
               if (codeErr) throw codeErr;
               const code = codeData as string;
 
@@ -222,10 +224,10 @@ function WeighingArrivalPage() {
               if (cfErr) throw cfErr;
               crushingCode = code;
 
-              // Création lot stock client_olives + mouvement d'entrée.
-              const { data: lotCode, error: lotCodeErr } = await supabase.rpc("next_lot_code", {
-                _kind: "client_olives",
-              });
+              const { data: lotCode, error: lotCodeErr } = await supabase.rpc(
+                "next_lot_code",
+                { _kind: "client_olives" },
+              );
               if (lotCodeErr) throw lotCodeErr;
 
               const { data: lot, error: lotErr } = await supabase
@@ -235,7 +237,7 @@ function WeighingArrivalPage() {
                   kind: "client_olives",
                   client_id: arrival.client_id,
                   crushing_file_id: cf.id,
-                  quantity_kg: 0, // sera recalculé par le trigger via stock_movements
+                  quantity_kg: 0,
                   notes: `Auto: arrivée ${arrival.ticket_number}`,
                 })
                 .select("id")
@@ -291,22 +293,17 @@ function WeighingArrivalPage() {
 
   if (!arrival) {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/weighing" })}>
-          <ArrowLeft className="me-1 h-4 w-4" />
-          {t("common.cancel")}
-        </Button>
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            {t("weigh.empty")}
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="p-8 text-center text-muted-foreground">
+          {t("weigh.empty")}
+        </CardContent>
+      </Card>
     );
   }
 
   const sortedWeighings = [...arrival.weighings].sort(
-    (a, b) => new Date(a.performed_at).getTime() - new Date(b.performed_at).getTime(),
+    (a, b) =>
+      new Date(a.performed_at).getTime() - new Date(b.performed_at).getTime(),
   );
   const simple = arrival.weighings.find((w) => w.kind === "simple");
   const first = arrival.weighings.find((w) => w.kind === "first");
@@ -317,32 +314,27 @@ function WeighingArrivalPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/weighing">
-            <ArrowLeft className="me-1 h-4 w-4" />
-            {t("nav.weighing")}
-          </Link>
-        </Button>
-      </div>
-
       <PageHeader
         title={arrival.ticket_number}
         subtitle={arrival.client?.full_name ?? undefined}
         icon={<Scale className="h-5 w-5" />}
       />
 
-      {/* Récap arrivée */}
       <Card>
         <CardContent className="grid gap-3 p-4 sm:grid-cols-3">
           <div>
             <div className="text-xs text-muted-foreground">{t("weigh.kind.simple")}</div>
-            <div className="font-mono font-bold tabular">{simple ? formatKg(simple.weight_kg) : "—"}</div>
+            <div className="font-mono font-bold tabular">
+              {simple ? formatKg(simple.weight_kg) : "—"}
+            </div>
           </div>
           <div>
-            <div className="text-xs text-muted-foreground">{t("weigh.kind.first")} / {t("weigh.kind.second")}</div>
+            <div className="text-xs text-muted-foreground">
+              {t("weigh.kind.first")} / {t("weigh.kind.second")}
+            </div>
             <div className="font-mono font-bold tabular">
-              {first ? formatKg(first.weight_kg) : "—"} / {second ? formatKg(second.weight_kg) : "—"}
+              {first ? formatKg(first.weight_kg) : "—"} /{" "}
+              {second ? formatKg(second.weight_kg) : "—"}
             </div>
           </div>
           <div>
@@ -354,7 +346,6 @@ function WeighingArrivalPage() {
         </CardContent>
       </Card>
 
-      {/* Liste pesées */}
       {sortedWeighings.length > 0 && (
         <ul className="space-y-2">
           {sortedWeighings.map((w) => (
@@ -380,7 +371,9 @@ function WeighingArrivalPage() {
                       </div>
                     )}
                   </div>
-                  <div className="font-mono text-lg font-bold tabular">{formatKg(w.weight_kg)}</div>
+                  <div className="font-mono text-lg font-bold tabular">
+                    {formatKg(w.weight_kg)}
+                  </div>
                 </CardContent>
               </Card>
             </li>
@@ -388,7 +381,6 @@ function WeighingArrivalPage() {
         </ul>
       )}
 
-      {/* Saisie inline */}
       {canAdd && (
         <Card>
           <CardContent className="space-y-4 p-4">

@@ -1,9 +1,9 @@
 /**
  * Module Pesage : liste des arrivées à peser.
- * Cliquer sur une ligne ouvre la page dédiée /weighing/$arrivalId
- * (récap + saisie inline + impression).
+ * Cliquer sur une ligne ouvre un Sheet avec le détail (récap + saisie + impression).
+ * On évite ainsi une route dynamique (problème d'hydratation TanStack Start).
  */
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Scale, Search, ChevronRight } from "lucide-react";
@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { WeighingDetailPanel } from "@/components/weighing/WeighingDetailPanel";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
@@ -46,21 +48,19 @@ type ServiceTab = "all" | "crushing" | "weigh_simple" | "weigh_double";
 
 function WeighingListPage() {
   const { t } = useI18n();
-  const navigate = useNavigate();
   const { arrival: arrivalParam } = Route.useSearch();
   const [search, setSearch] = useState("");
   const [serviceTab, setServiceTab] = useState<ServiceTab>("all");
   const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
+  const [openArrivalId, setOpenArrivalId] = useState<string | null>(null);
 
-  // Compat : si quelqu'un arrive avec ?arrival=ID, on redirige vers la page dédiée.
+  // Compat : si on arrive avec ?arrival=ID, on ouvre directement le sheet.
   useEffect(() => {
     if (arrivalParam) {
-      navigate({ to: "/weighing/$arrivalId", params: { arrivalId: arrivalParam }, replace: true });
+      setOpenArrivalId(arrivalParam);
     }
-  }, [arrivalParam, navigate]);
+  }, [arrivalParam]);
 
-  // Une seule requête : on récupère tous les arrivals non annulés, puis on filtre côté client.
-  // Cela évite les caches divergents entre onglets et garantit que les compteurs correspondent toujours aux listes affichées.
   const { data: arrivals, isLoading } = useQuery({
     queryKey: ["weighing-arrivals"],
     queryFn: async () => {
@@ -173,11 +173,20 @@ function WeighingListPage() {
             <WeighingRow
               key={a.id}
               arrival={a}
-              onOpen={() => navigate({ to: "/weighing/$arrivalId", params: { arrivalId: a.id } })}
+              onOpen={() => setOpenArrivalId(a.id)}
             />
           ))}
         </ul>
       )}
+
+      <Sheet open={!!openArrivalId} onOpenChange={(o) => !o && setOpenArrivalId(null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
+          <SheetHeader className="sr-only">
+            <SheetTitle>{t("weigh.title")}</SheetTitle>
+          </SheetHeader>
+          {openArrivalId && <WeighingDetailPanel arrivalId={openArrivalId} />}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
