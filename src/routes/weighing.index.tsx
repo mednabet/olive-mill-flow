@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle, Factory } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle, Factory, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -22,6 +22,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { WeighingDetailPanel } from "@/components/weighing/WeighingDetailPanel";
 import { NewArrivalDialog } from "@/components/arrivals/NewArrivalDialog";
+import { AssignCrushingFileDialog } from "@/components/crushing/AssignCrushingFileDialog";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
