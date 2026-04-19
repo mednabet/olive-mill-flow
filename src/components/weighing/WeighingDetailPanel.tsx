@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Scale, Printer, XCircle, Car, FileText, Link2 } from "lucide-react";
+import { Scale, Printer, XCircle, Car, FileText, Link2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
@@ -79,6 +79,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const [printOpen, setPrintOpen] = useState(false);
   const [printCrushingOpen, setPrintCrushingOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
   const [createdCrushingFileId, setCreatedCrushingFileId] = useState<string | null>(null);
@@ -217,6 +218,38 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success(t("weigh.cancel_arrival_success"));
       setCancelOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!arrival) throw new Error("no arrival");
+      if (arrival.weighings.length > 0) throw new Error(t("weigh.delete_with_weighings"));
+      // Détacher éventuellement d'un dossier d'écrasement cible (sécurité)
+      await supabase
+        .from("crushing_file_arrivals")
+        .delete()
+        .eq("arrival_id", arrival.id);
+      const { error } = await supabase.from("arrivals").delete().eq("id", arrival.id);
+      if (error) throw error;
+      await supabase.from("audit_logs").insert({
+        action: "delete_arrival",
+        entity_type: "arrivals",
+        entity_id: arrival.id,
+        user_id: user?.id ?? null,
+        reason: "Suppression depuis le module Pesage",
+        old_values: { ticket_number: arrival.ticket_number, client_id: arrival.client_id },
+      });
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
+      await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      await qc.invalidateQueries({ queryKey: ["queue-files"] });
+      toast.success(t("weigh.delete_arrival_success"));
+      setDeleteOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -499,6 +532,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     !hasAnyWeighing &&
     arrival.status !== "cancelled" &&
     (isPrivileged || (isPeseur && (allowCancelCfg?.enabled ?? false)));
+  const canDelete = !hasAnyWeighing && (roles ?? []).includes("admin");
 
   return (
     <div className="space-y-6">
@@ -524,6 +558,17 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               <Button variant="outline" size="sm" onClick={() => setCancelOpen(true)}>
                 <XCircle className="me-1 h-4 w-4" />
                 {t("weigh.cancel_arrival")}
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteOpen(true)}
+                className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="me-1 h-4 w-4" />
+                {t("weigh.delete_arrival")}
               </Button>
             )}
           </div>
@@ -806,6 +851,31 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("weigh.delete_arrival_confirm", arrival.ticket_number)}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {hasAnyWeighing
+                ? t("weigh.delete_with_weighings")
+                : t("weigh.delete_arrival_desc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteMutation.isPending || hasAnyWeighing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
