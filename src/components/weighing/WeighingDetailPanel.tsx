@@ -221,6 +221,15 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
         arrival.service_type !== "weigh_double" && kind === "simple";
       const fullyWeighed = isDoubleDone || isSimpleDone;
 
+      // Calcul du net pour le toast (utile pour les pesées doubles non-écrasement)
+      let toastNet: number | null = null;
+      if (isDoubleDone) {
+        const firstW = arrival.weighings.find((x) => x.kind === "first")?.weight_kg ?? null;
+        if (firstW !== null) toastNet = Math.max(0, w - firstW);
+      } else if (isSimpleDone) {
+        toastNet = w;
+      }
+
       let crushingCode: string | null = null;
       if (fullyWeighed) {
         await supabase.from("arrivals").update({ status: "routed" }).eq("id", arrival.id);
@@ -310,9 +319,9 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
           }
         }
       }
-      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode };
+      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode, toastNet };
     },
-    onSuccess: async ({ fullyWeighed, crushingCode }) => {
+    onSuccess: async ({ fullyWeighed, crushingCode, toastNet }) => {
       await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
       await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
       await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -322,9 +331,10 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       reset();
       if (fullyWeighed) {
         if (crushingCode) {
+          setCreatedCrushingCode(crushingCode);
           toast.success(t("weigh.crushing_created", crushingCode));
         } else {
-          toast.success(t("weigh.second_done", ""));
+          toast.success(t("weigh.second_done", toastNet !== null ? formatKg(toastNet) : ""));
         }
         setPrintOpen(true);
       } else {
