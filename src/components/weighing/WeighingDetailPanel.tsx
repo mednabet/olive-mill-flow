@@ -222,7 +222,37 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const kind: WeighingKind = useMemo(() => {
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!arrival) throw new Error("no arrival");
+      if (arrival.weighings.length > 0) throw new Error(t("weigh.delete_with_weighings"));
+      // Détacher éventuellement d'un dossier d'écrasement cible (sécurité)
+      await supabase
+        .from("crushing_file_arrivals")
+        .delete()
+        .eq("arrival_id", arrival.id);
+      const { error } = await supabase.from("arrivals").delete().eq("id", arrival.id);
+      if (error) throw error;
+      await supabase.from("audit_logs").insert({
+        action: "delete_arrival",
+        entity_type: "arrivals",
+        entity_id: arrival.id,
+        user_id: user?.id ?? null,
+        reason: "Suppression depuis le module Pesage",
+        old_values: { ticket_number: arrival.ticket_number, client_id: arrival.client_id },
+      });
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
+      await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      await qc.invalidateQueries({ queryKey: ["queue-files"] });
+      toast.success(t("weigh.delete_arrival_success"));
+      setDeleteOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
     if (!arrival) return "simple";
     if (arrival.service_type === "weigh_double") {
       const hasFirst = arrival.weighings.some((w) => w.kind === "first");
