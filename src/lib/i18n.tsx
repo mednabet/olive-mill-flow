@@ -190,6 +190,11 @@ const dict = {
     "arrival.select_client_first": "Sélectionnez d'abord un client",
     "arrival.select_or_search": "Sélectionner ou rechercher…",
     "arrival.create_client_inline": "+ Nouveau client",
+    "arrival.detail.weighings": "Pesages liés",
+    "arrival.detail.no_weighings": "Aucune pesée enregistrée pour cette arrivée.",
+    "arrival.detail.crushing_files": "Dossiers d'écrasement liés",
+    "arrival.detail.no_crushing": "Aucun dossier d'écrasement lié à cette arrivée.",
+    "arrival.detail.stock_lots": "Lots stock liés",
     // Weighing
     "weigh.title": "Pesage",
     "weigh.subtitle": "Pesée simple et double — saisie manuelle",
