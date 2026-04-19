@@ -34,6 +34,7 @@ type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type Vehicle = Database["public"]["Tables"]["vehicles"]["Row"];
 type Weighing = Database["public"]["Tables"]["weighings"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
 type WeighingKind = Database["public"]["Enums"]["weighing_kind"];
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -41,6 +42,7 @@ interface EnrichedArrival extends Arrival {
   client: Client | null;
   vehicle: Vehicle | null;
   weighings: Weighing[];
+  product: Product | null;
 }
 
 const KIND_LABEL: Record<WeighingKind, TranslationKey> = {
@@ -93,12 +95,44 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("arrivals")
-        .select("*, client:clients(*), vehicle:vehicles(*), weighings(*)")
+        .select("*, client:clients(*), vehicle:vehicles(*), weighings(*), product:products(*)")
         .eq("id", arrivalId)
         .maybeSingle();
       if (error) throw error;
       return (data as unknown as EnrichedArrival) ?? null;
     },
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ["products", "olive", "active"],
+    queryFn: async (): Promise<Product[]> => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("category", "olive")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: arrival?.service_type === "crushing",
+  });
+
+  const setProduct = useMutation({
+    mutationFn: async (newProductId: string) => {
+      const { error } = await supabase
+        .from("arrivals")
+        .update({ product_id: newProductId || null })
+        .eq("id", arrivalId);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
+      await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["arrivals"] });
+      toast.success(t("common.success"));
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const isPrivileged = (roles ?? []).some(
@@ -134,6 +168,9 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const save = useMutation({
     mutationFn: async () => {
       if (!arrival) throw new Error("no arrival");
+      if (arrival.service_type === "crushing" && !arrival.product_id) {
+        throw new Error(t("weigh.product_required"));
+      }
       const w = parseFloat(weight);
       if (!Number.isFinite(w) || w < 0) throw new Error(t("validation.positive"));
       if (source === "manual" && !reason.trim())
@@ -320,6 +357,55 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
         icon={<Scale className="h-5 w-5" />}
       />
 
+      {arrival.service_type === "crushing" && (
+        <Card>
+          <CardContent className="space-y-2 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-sm font-medium">
+                {t("weigh.product")}{" "}
+                <span className="text-destructive">*</span>
+              </label>
+              {arrival.product && (
+                <span
+                  className="rounded-full border px-2 py-0.5 text-xs font-medium"
+                  style={{
+                    borderColor: arrival.product.color ?? undefined,
+                    color: arrival.product.color ?? undefined,
+                  }}
+                >
+                  {arrival.product.name}
+                </span>
+              )}
+            </div>
+            <Select
+              value={arrival.product_id ?? ""}
+              onValueChange={(v) => setProduct.mutate(v)}
+              disabled={setProduct.isPending}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("weigh.product_placeholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {products?.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <span
+                      className="me-2 inline-block h-2 w-2 rounded-full align-middle"
+                      style={{ backgroundColor: p.color ?? "#84cc16" }}
+                    />
+                    {p.name}
+                    <span className="ms-2 font-mono text-xs text-muted-foreground tabular">
+                      {p.code}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!arrival.product_id && (
+              <p className="text-xs text-destructive">{t("weigh.product_required")}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardContent className="grid gap-3 p-4 sm:grid-cols-3">
           <div>
@@ -423,7 +509,14 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               <Button variant="outline" onClick={reset} disabled={save.isPending || !weight}>
                 {t("common.cancel")}
               </Button>
-              <Button onClick={() => save.mutate()} disabled={save.isPending || !weight}>
+              <Button
+                onClick={() => save.mutate()}
+                disabled={
+                  save.isPending ||
+                  !weight ||
+                  (arrival.service_type === "crushing" && !arrival.product_id)
+                }
+              >
                 {t("weigh.save")}
               </Button>
             </div>
