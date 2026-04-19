@@ -275,9 +275,7 @@ export function EditWeighingDialog({
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="edit-reason">
-              {t("weigh.edit_reason")} <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor="edit-reason">{t("weigh.edit_reason")}</Label>
             <Textarea
               id="edit-reason"
               value={reason}
