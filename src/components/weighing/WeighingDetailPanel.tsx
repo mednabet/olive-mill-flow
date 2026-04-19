@@ -5,13 +5,14 @@
  */
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Scale, Printer } from "lucide-react";
+import { Scale, Printer, XCircle, Car, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type TranslationKey } from "@/lib/i18n";
-import { useAllowManualConfig, useScales } from "@/lib/settings";
+import { useAllowManualConfig, useScales, useAllowCancelByPeseur } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PrintLayout } from "@/components/PrintLayout";
@@ -28,6 +29,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
@@ -61,8 +72,13 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const qc = useQueryClient();
   const { data: scales } = useScales(false);
   const { data: allowManualCfg } = useAllowManualConfig();
+  const { data: allowCancelCfg } = useAllowCancelByPeseur();
 
   const [printOpen, setPrintOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
+
+  // (printOpen déclaré plus haut)
   const [weight, setWeight] = useState("");
   const [source, setSource] = useState<WeighingSourceUI>("scale");
   const [reason, setReason] = useState("");
@@ -138,7 +154,34 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const isPrivileged = (roles ?? []).some(
     (r: AppRole) => r === "admin" || r === "superviseur",
   );
+  const isPeseur = (roles ?? []).some((r: AppRole) => r === "peseur");
   const allowManual = isPrivileged || (allowManualCfg?.enabled ?? true);
+
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("arrivals")
+        .update({ status: "cancelled", closed_at: new Date().toISOString() })
+        .eq("id", arrivalId);
+      if (error) throw error;
+      await supabase.from("audit_logs").insert({
+        action: "cancel_arrival",
+        entity_type: "arrivals",
+        entity_id: arrivalId,
+        user_id: user?.id ?? null,
+        reason: "Annulation depuis le module Pesage",
+      });
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
+      await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      toast.success(t("weigh.cancel_arrival_success"));
+      setCancelOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const kind: WeighingKind = useMemo(() => {
     if (!arrival) return "simple";
@@ -204,6 +247,15 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       const isSimpleDone =
         arrival.service_type !== "weigh_double" && kind === "simple";
       const fullyWeighed = isDoubleDone || isSimpleDone;
+
+      // Calcul du net pour le toast (utile pour les pesées doubles non-écrasement)
+      let toastNet: number | null = null;
+      if (isDoubleDone) {
+        const firstW = arrival.weighings.find((x) => x.kind === "first")?.weight_kg ?? null;
+        if (firstW !== null) toastNet = Math.max(0, w - firstW);
+      } else if (isSimpleDone) {
+        toastNet = w;
+      }
 
       let crushingCode: string | null = null;
       if (fullyWeighed) {
@@ -294,9 +346,9 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
           }
         }
       }
-      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode };
+      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode, toastNet };
     },
-    onSuccess: async ({ fullyWeighed, crushingCode }) => {
+    onSuccess: async ({ fullyWeighed, crushingCode, toastNet }) => {
       await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
       await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
       await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -306,9 +358,10 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       reset();
       if (fullyWeighed) {
         if (crushingCode) {
+          setCreatedCrushingCode(crushingCode);
           toast.success(t("weigh.crushing_created", crushingCode));
         } else {
-          toast.success(t("weigh.second_done", ""));
+          toast.success(t("weigh.second_done", toastNet !== null ? formatKg(toastNet) : ""));
         }
         setPrintOpen(true);
       } else {
@@ -349,14 +402,54 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
     simple?.weight_kg ??
     (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
 
+  const hasAnyWeighing = arrival.weighings.length > 0;
+  const canCancel =
+    !hasAnyWeighing &&
+    arrival.status !== "cancelled" &&
+    (isPrivileged || (isPeseur && (allowCancelCfg?.enabled ?? false)));
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={arrival.ticket_number}
         subtitle={arrival.client?.full_name ?? undefined}
         icon={<Scale className="h-5 w-5" />}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {arrival.vehicle && (
+              <span className="inline-flex items-center gap-1 self-center rounded bg-muted px-2 py-1 font-mono text-xs tabular" dir="ltr">
+                <Car className="h-3.5 w-3.5" />
+                {arrival.vehicle.plate}
+              </span>
+            )}
+            {canCancel && (
+              <Button variant="outline" size="sm" onClick={() => setCancelOpen(true)}>
+                <XCircle className="me-1 h-4 w-4" />
+                {t("weigh.cancel_arrival")}
+              </Button>
+            )}
+          </div>
+        }
       />
 
+      {createdCrushingCode && (
+        <Card className="border-success/40 bg-success/5">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-success" />
+              <div>
+                <div className="text-sm font-medium">{t("weigh.crushing_created", createdCrushingCode)}</div>
+                <div className="font-mono text-xs text-muted-foreground tabular">{createdCrushingCode}</div>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/crushing">
+                {t("weigh.open_crushing")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       {arrival.service_type === "crushing" && (
         <Card>
           <CardContent className="space-y-2 p-4">
@@ -475,7 +568,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                 <Scale className="h-5 w-5 text-primary" />
                 {t(KIND_LABEL[kind])}
               </h3>
-              {scales && scales.length > 0 && (
+              {scales && scales.length > 0 ? (
                 <Select value={selectedScaleId} onValueChange={setSelectedScaleId}>
                   <SelectTrigger className="w-full sm:w-64">
                     <SelectValue placeholder={t("admin.scales.title")} />
@@ -489,6 +582,10 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                     ))}
                   </SelectContent>
                 </Select>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {t("weigh.no_scales_configured")}
+                </span>
               )}
             </div>
 
@@ -544,10 +641,36 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               client={arrival.client}
               vehicle={arrival.vehicle}
               weighings={arrival.weighings}
+              product={arrival.product}
             />
           </PrintLayout>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("weigh.cancel_arrival_confirm", arrival.ticket_number)}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {hasAnyWeighing
+                ? t("weigh.cancel_arrival_with_weighings")
+                : t("weigh.cancel_arrival")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => cancelMutation.mutate()}
+              disabled={cancelMutation.isPending || hasAnyWeighing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

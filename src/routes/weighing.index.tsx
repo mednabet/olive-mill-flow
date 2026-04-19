@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight, Plus } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus, Car, Leaf, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -28,11 +28,13 @@ type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type Vehicle = Database["public"]["Tables"]["vehicles"]["Row"];
 type Weighing = Database["public"]["Tables"]["weighings"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
 
 interface EnrichedArrival extends Arrival {
   client: Client | null;
   vehicle: Vehicle | null;
   weighings: Weighing[];
+  product: Product | null;
 }
 
 export const Route = createFileRoute("/weighing/")({
@@ -48,14 +50,29 @@ export const Route = createFileRoute("/weighing/")({
 
 type ServiceTab = "all" | "crushing" | "weigh_simple" | "weigh_double";
 
+const SERVICE_TAB_KEY = "weighing.service_tab";
+
+function readInitialTab(): ServiceTab {
+  if (typeof window === "undefined") return "crushing";
+  const v = window.localStorage.getItem(SERVICE_TAB_KEY);
+  if (v === "all" || v === "crushing" || v === "weigh_simple" || v === "weigh_double") return v;
+  return "crushing";
+}
+
 function WeighingListPage() {
   const { t } = useI18n();
   const { arrival: arrivalParam } = Route.useSearch();
   const [search, setSearch] = useState("");
-  const [serviceTab, setServiceTab] = useState<ServiceTab>("all");
+  const [serviceTab, setServiceTab] = useState<ServiceTab>(() => readInitialTab());
   const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
   const [openArrivalId, setOpenArrivalId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SERVICE_TAB_KEY, serviceTab);
+    }
+  }, [serviceTab]);
 
   // Compat : si on arrive avec ?arrival=ID, on ouvre directement le sheet.
   useEffect(() => {
@@ -69,7 +86,9 @@ function WeighingListPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("arrivals")
-        .select("*, client:clients(*), vehicle:vehicles(*), weighings(*)")
+        .select(
+          "*, client:clients(*), vehicle:vehicles(*), weighings(*), product:products(*)",
+        )
         .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(500);
@@ -135,11 +154,8 @@ function WeighingListPage() {
 
       <Tabs value={serviceTab} onValueChange={(v) => setServiceTab(v as ServiceTab)}>
         <TabsList className="flex-wrap">
-          <TabsTrigger value="all">
-            {t("common.all")}
-            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.all}</span>
-          </TabsTrigger>
           <TabsTrigger value="crushing">
+            <Leaf className="me-1 h-3.5 w-3.5" />
             {t("nav.crushing")}
             <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.crushing}</span>
           </TabsTrigger>
@@ -150,6 +166,10 @@ function WeighingListPage() {
           <TabsTrigger value="weigh_double">
             {t("weigh.kind.first")}/{t("weigh.kind.second")}
             <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.weigh_double}</span>
+          </TabsTrigger>
+          <TabsTrigger value="all">
+            {t("common.all")}
+            <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs tabular">{counts.all}</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -216,10 +236,12 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
   const first = arrival.weighings.find((w) => w.kind === "first");
   const second = arrival.weighings.find((w) => w.kind === "second");
   const isDouble = arrival.service_type === "weigh_double";
+  const isCrushing = arrival.service_type === "crushing";
   const net =
     simple?.weight_kg ??
     (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
   const fullyDone = isDouble ? !!(first && second) : !!simple;
+  const missingProduct = isCrushing && !arrival.product_id;
 
   return (
     <li>
@@ -238,15 +260,39 @@ function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: ()
                 {fullyDone ? t("common.success") : t("weigh.no_weight_yet")}
               </StatusBadge>
               {isDouble && <StatusBadge tone="info">{t("weigh.kind.first")}/{t("weigh.kind.second")}</StatusBadge>}
+              {isCrushing && arrival.product && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+                  style={{
+                    borderColor: arrival.product.color ?? undefined,
+                    color: arrival.product.color ?? undefined,
+                  }}
+                >
+                  <Leaf className="h-3 w-3" />
+                  {arrival.product.name}
+                </span>
+              )}
+              {missingProduct && (
+                <StatusBadge tone="warning">
+                  <AlertTriangle className="me-1 inline h-3 w-3" />
+                  {t("weigh.no_product")}
+                </StatusBadge>
+              )}
             </div>
-            <div className="mt-1 truncate text-sm">
+            <div className="mt-1 flex flex-wrap items-center gap-3 truncate text-sm">
               {arrival.client ? (
-                <>
+                <span className="truncate">
                   <span className="font-medium">{arrival.client.full_name}</span>
                   <span className="font-mono text-xs text-muted-foreground tabular ms-2">{arrival.client.code}</span>
-                </>
+                </span>
               ) : (
                 <span className="italic text-muted-foreground">—</span>
+              )}
+              {arrival.vehicle && (
+                <span className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 font-mono text-xs tabular" dir="ltr">
+                  <Car className="h-3 w-3" />
+                  {arrival.vehicle.plate}
+                </span>
               )}
             </div>
             <div className="mt-0.5 flex flex-wrap gap-3 text-xs text-muted-foreground tabular">

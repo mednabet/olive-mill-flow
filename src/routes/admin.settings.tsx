@@ -66,12 +66,20 @@ function SettingsPage() {
       return (data?.value as { enabled: boolean }) ?? { enabled: true };
     },
   });
+  const allowCancelQ = useQuery({
+    queryKey: ["settings-allow-cancel-peseur"],
+    queryFn: async () => {
+      const { data } = await supabase.from("settings").select("value").eq("key", "arrival_cancel.allow_peseur").maybeSingle();
+      return (data?.value as { enabled: boolean }) ?? { enabled: false };
+    },
+  });
 
   const [mill, setMill] = useState<MillInfo>({});
   const [vatRate, setVatRate] = useState<string>("20");
   const [currency, setCurrency] = useState<string>("MAD");
   const [scaleUrl, setScaleUrl] = useState<string>("ws://localhost:9001");
   const [allowManual, setAllowManual] = useState<boolean>(true);
+  const [allowCancel, setAllowCancel] = useState<boolean>(false);
 
   useEffect(() => { if (millQ.data) setMill(millQ.data); }, [millQ.data]);
   useEffect(() => {
@@ -82,6 +90,7 @@ function SettingsPage() {
   }, [vatQ.data]);
   useEffect(() => { if (scaleQ.data) setScaleUrl(scaleQ.data.url ?? "ws://localhost:9001"); }, [scaleQ.data]);
   useEffect(() => { if (allowManualQ.data) setAllowManual(allowManualQ.data.enabled ?? true); }, [allowManualQ.data]);
+  useEffect(() => { if (allowCancelQ.data) setAllowCancel(allowCancelQ.data.enabled ?? false); }, [allowCancelQ.data]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -106,14 +115,22 @@ function SettingsPage() {
           { key: "weighing.allow_manual_for_peseur", value: { enabled: allowManual } as never },
           { onConflict: "key" },
         );
+      await supabase
+        .from("settings")
+        .upsert(
+          { key: "arrival_cancel.allow_peseur", value: { enabled: allowCancel } as never },
+          { onConflict: "key" },
+        );
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["settings-mill"] });
       qc.invalidateQueries({ queryKey: ["settings-vat"] });
       qc.invalidateQueries({ queryKey: ["settings-scale"] });
       qc.invalidateQueries({ queryKey: ["settings-allow-manual"] });
+      qc.invalidateQueries({ queryKey: ["settings-allow-cancel-peseur"] });
       qc.invalidateQueries({ queryKey: ["settings", "scale.websocket_url"] });
       qc.invalidateQueries({ queryKey: ["settings", "weighing.allow_manual_for_peseur"] });
+      qc.invalidateQueries({ queryKey: ["settings", "arrival_cancel.allow_peseur"] });
       qc.invalidateQueries({ queryKey: ["mill-info"] });
       toast.success(t("admin.settings.saved"));
     },
@@ -174,7 +191,7 @@ function SettingsPage() {
 
       <Card>
         <CardHeader><CardTitle>{t("admin.settings.weighing_section")}</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
@@ -185,6 +202,18 @@ function SettingsPage() {
             <div className="space-y-1">
               <div className="font-medium">{t("admin.settings.allow_manual_peseur")}</div>
               <p className="text-xs text-muted-foreground">{t("admin.settings.allow_manual_peseur_help")}</p>
+            </div>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={allowCancel}
+              onChange={(e) => setAllowCancel(e.target.checked)}
+              className="mt-1 h-5 w-5 cursor-pointer accent-primary"
+            />
+            <div className="space-y-1">
+              <div className="font-medium">{t("admin.settings.allow_cancel_peseur")}</div>
+              <p className="text-xs text-muted-foreground">{t("admin.settings.allow_cancel_peseur_help")}</p>
             </div>
           </label>
         </CardContent>
