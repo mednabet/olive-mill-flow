@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatKg } from "@/lib/format";
+import { QueueFileArrivalsButton } from "@/components/crushing/QueueFileArrivalsButton";
 
 type CrushingFile = Database["public"]["Tables"]["crushing_files"]["Row"];
 type Client = Database["public"]["Tables"]["clients"]["Row"];
@@ -209,6 +210,8 @@ function QueuePage() {
                         {t("crushing.start")}
                       </Button>
                     )}
+
+                    <QueueFileArrivalsButton fileId={f.id} clientId={f.client?.id ?? null} />
                   </div>
                 </CardContent>
               </Card>
