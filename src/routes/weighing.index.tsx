@@ -55,6 +55,7 @@ function WeighingListPage() {
   const [serviceTab, setServiceTab] = useState<ServiceTab>("all");
   const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
   const [openArrivalId, setOpenArrivalId] = useState<string | null>(null);
+  const [showNew, setShowNew] = useState(false);
 
   // Compat : si on arrive avec ?arrival=ID, on ouvre directement le sheet.
   useEffect(() => {
