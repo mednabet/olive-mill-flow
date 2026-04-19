@@ -357,6 +357,55 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
         icon={<Scale className="h-5 w-5" />}
       />
 
+      {arrival.service_type === "crushing" && (
+        <Card>
+          <CardContent className="space-y-2 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-sm font-medium">
+                {t("weigh.product")}{" "}
+                <span className="text-destructive">*</span>
+              </label>
+              {arrival.product && (
+                <span
+                  className="rounded-full border px-2 py-0.5 text-xs font-medium"
+                  style={{
+                    borderColor: arrival.product.color ?? undefined,
+                    color: arrival.product.color ?? undefined,
+                  }}
+                >
+                  {arrival.product.name}
+                </span>
+              )}
+            </div>
+            <Select
+              value={arrival.product_id ?? ""}
+              onValueChange={(v) => setProduct.mutate(v)}
+              disabled={setProduct.isPending}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("weigh.product_placeholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {products?.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <span
+                      className="me-2 inline-block h-2 w-2 rounded-full align-middle"
+                      style={{ backgroundColor: p.color ?? "#84cc16" }}
+                    />
+                    {p.name}
+                    <span className="ms-2 font-mono text-xs text-muted-foreground tabular">
+                      {p.code}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!arrival.product_id && (
+              <p className="text-xs text-destructive">{t("weigh.product_required")}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardContent className="grid gap-3 p-4 sm:grid-cols-3">
           <div>
