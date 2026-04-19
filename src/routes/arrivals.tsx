@@ -6,7 +6,7 @@
  * - Affichage du ticket imprimable après création
  * - Liste des arrivées du jour (filtre)
  */
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -253,67 +253,76 @@ function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
 
   return (
     <li>
-      <Card className={cn("transition-shadow hover:shadow-sm", isCancelled && "opacity-60")}>
-        <CardContent className="flex flex-wrap items-center gap-4 p-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent/20 text-accent-foreground">
-            <Icon className="h-5 w-5" />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-base font-bold tabular tracking-wide">
-                {arrival.ticket_number}
-              </span>
-              <Badge variant="outline" className={cn("text-xs", STATUS_COLOR[arrival.status])}>
-                {t(STATUS_LABEL[arrival.status])}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                {t(SERVICE_LABEL[arrival.service_type])}
-              </Badge>
-              {arrival.product && (
-                <Badge
-                  variant="outline"
-                  className="text-xs"
-                  style={{
-                    borderColor: arrival.product.color ?? undefined,
-                    color: arrival.product.color ?? undefined,
-                  }}
-                >
-                  {arrival.product.name}
-                </Badge>
-              )}
+      <Card className={cn("transition-shadow hover:shadow-md", isCancelled && "opacity-60")}>
+        <CardContent className="flex flex-wrap items-center gap-4 p-0">
+          <Link
+            to="/arrivals/$arrivalId"
+            params={{ arrivalId: arrival.id }}
+            className="flex flex-1 flex-wrap items-center gap-4 p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-l-lg"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent/20 text-accent-foreground">
+              <Icon className="h-5 w-5" />
             </div>
-            <div className="mt-1 truncate text-sm">
-              {arrival.client ? (
-                <>
-                  <span className="font-medium">{arrival.client.full_name}</span>
-                  <span className="font-mono text-xs text-muted-foreground tabular ms-2">
-                    {arrival.client.code}
-                  </span>
-                </>
-              ) : (
-                <span className="italic text-muted-foreground">—</span>
-              )}
-              {arrival.vehicle && (
-                <span className="ms-3 font-mono text-xs text-muted-foreground tabular" dir="ltr">
-                  · {arrival.vehicle.plate}
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-base font-bold tabular tracking-wide">
+                  {arrival.ticket_number}
                 </span>
-              )}
+                <Badge variant="outline" className={cn("text-xs", STATUS_COLOR[arrival.status])}>
+                  {t(STATUS_LABEL[arrival.status])}
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {t(SERVICE_LABEL[arrival.service_type])}
+                </Badge>
+                {arrival.product && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs"
+                    style={{
+                      borderColor: arrival.product.color ?? undefined,
+                      color: arrival.product.color ?? undefined,
+                    }}
+                  >
+                    {arrival.product.name}
+                  </Badge>
+                )}
+              </div>
+              <div className="mt-1 truncate text-sm">
+                {arrival.client ? (
+                  <>
+                    <span className="font-medium">{arrival.client.full_name}</span>
+                    <span className="font-mono text-xs text-muted-foreground tabular ms-2">
+                      {arrival.client.code}
+                    </span>
+                  </>
+                ) : (
+                  <span className="italic text-muted-foreground">—</span>
+                )}
+                {arrival.vehicle && (
+                  <span className="ms-3 font-mono text-xs text-muted-foreground tabular" dir="ltr">
+                    · {arrival.vehicle.plate}
+                  </span>
+                )}
+              </div>
+              <div className="mt-0.5 text-xs text-muted-foreground tabular">
+                {new Date(arrival.created_at).toLocaleString(locale === "ar" ? "ar-TN" : "fr-FR", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })}
+              </div>
             </div>
-            <div className="mt-0.5 text-xs text-muted-foreground tabular">
-              {new Date(arrival.created_at).toLocaleString(locale === "ar" ? "ar-TN" : "fr-FR", {
-                dateStyle: "short",
-                timeStyle: "short",
-              })}
-            </div>
-          </div>
+          </Link>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 p-4 ps-0">
             {!isCancelled && (
               <Button
                 variant={arrival.service_type === "crushing" ? "default" : "ghost"}
                 size="sm"
-                onClick={() => navigate({ to: "/weighing/$arrivalId", params: { arrivalId: arrival.id } })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate({ to: "/weighing/$arrivalId", params: { arrivalId: arrival.id } });
+                }}
               >
                 <Scale className="me-1 h-4 w-4" />
                 {arrival.service_type === "crushing" ? t("weigh.title") : t("arrival.go_to_weighing")}
@@ -324,7 +333,8 @@ function ArrivalRow({ arrival }: { arrival: EnrichedArrival }) {
                 variant="ghost"
                 size="icon"
                 className="text-destructive hover:text-destructive"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (window.confirm(t("arrival.cancel_confirm"))) cancelMutation.mutate();
                 }}
                 disabled={cancelMutation.isPending}
