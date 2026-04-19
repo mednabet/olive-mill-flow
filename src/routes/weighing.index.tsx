@@ -68,6 +68,7 @@ function WeighingListPage() {
   const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
   const [openArrivalId, setOpenArrivalId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [assignTarget, setAssignTarget] = useState<EnrichedArrival | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -209,6 +210,7 @@ function WeighingListPage() {
               key={a.id}
               arrival={a}
               onOpen={() => setOpenArrivalId(a.id)}
+              onAssign={() => setAssignTarget(a)}
             />
           ))}
         </ul>
@@ -228,11 +230,29 @@ function WeighingListPage() {
         onOpenChange={setShowNew}
         onCreated={(id) => setOpenArrivalId(id)}
       />
+
+      {assignTarget && (
+        <AssignCrushingFileDialog
+          open={!!assignTarget}
+          onOpenChange={(o) => !o && setAssignTarget(null)}
+          arrivalId={assignTarget.id}
+          clientId={assignTarget.client_id}
+          arrivalTicket={assignTarget.ticket_number}
+        />
+      )}
     </div>
   );
 }
 
-function WeighingRow({ arrival, onOpen }: { arrival: EnrichedArrival; onOpen: () => void }) {
+function WeighingRow({
+  arrival,
+  onOpen,
+  onAssign,
+}: {
+  arrival: EnrichedArrival;
+  onOpen: () => void;
+  onAssign: () => void;
+}) {
   const { t } = useI18n();
   const simple = arrival.weighings.find((w) => w.kind === "simple");
   const first = arrival.weighings.find((w) => w.kind === "first");
