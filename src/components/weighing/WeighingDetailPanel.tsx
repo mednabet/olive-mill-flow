@@ -19,6 +19,7 @@ import { PrintLayout } from "@/components/PrintLayout";
 import { WeighingTicket } from "@/components/weighing/WeighingTicket";
 import { CrushingTicket } from "@/components/crushing/CrushingTicket";
 import { AssignCrushingFileDialog } from "@/components/crushing/AssignCrushingFileDialog";
+import { EditWeighingDialog } from "@/components/weighing/EditWeighingDialog";
 import { ScaleInput, type WeighingSourceUI } from "@/components/weighing/ScaleInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
