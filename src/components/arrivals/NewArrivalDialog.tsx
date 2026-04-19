@@ -15,6 +15,7 @@ import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -32,18 +33,16 @@ import {
 import { cn } from "@/lib/utils";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
-type ServiceType = Database["public"]["Enums"]["service_type"];
+type WeighingType = "weigh_simple" | "weigh_double";
 
-const SERVICE_ICON: Record<ServiceType, typeof Scale> = {
+const WEIGHING_ICON: Record<WeighingType, typeof Scale> = {
   weigh_simple: Scale,
   weigh_double: Scale,
-  crushing: Factory,
 };
 
-const SERVICE_LABEL: Record<ServiceType, TranslationKey> = {
+const WEIGHING_LABEL: Record<WeighingType, TranslationKey> = {
   weigh_simple: "arrival.service.weigh_simple",
   weigh_double: "arrival.service.weigh_double",
-  crushing: "arrival.service.crushing",
 };
 
 interface NewArrivalDialogProps {
@@ -58,14 +57,16 @@ export function NewArrivalDialog({ open, onOpenChange, onCreated }: NewArrivalDi
   const qc = useQueryClient();
   const [client, setClient] = useState<Client | null>(null);
   const [vehicleId, setVehicleId] = useState<string>("");
-  const [serviceType, setServiceType] = useState<ServiceType>("weigh_simple");
+  const [weighingType, setWeighingType] = useState<WeighingType>("weigh_double");
+  const [needsCrushing, setNeedsCrushing] = useState(true);
   const [notes, setNotes] = useState("");
   const [showNewClient, setShowNewClient] = useState(false);
 
   const reset = () => {
     setClient(null);
     setVehicleId("");
-    setServiceType("weigh_simple");
+    setWeighingType("weigh_double");
+    setNeedsCrushing(true);
     setNotes("");
   };
 
