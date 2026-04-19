@@ -261,7 +261,7 @@ function WeighingRow({
   const isCrushing = arrival.needs_crushing;
   const net =
     simple?.weight_kg ??
-    (first && second ? Math.max(0, second.weight_kg - first.weight_kg) : null);
+    (first && second ? Math.abs(second.weight_kg - first.weight_kg) : null);
   const fullyDone = isDouble ? !!(first && second) : !!simple;
   const missingProduct = isCrushing && !arrival.product_id;
 
