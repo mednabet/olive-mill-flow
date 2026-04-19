@@ -82,6 +82,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [editingWeighing, setEditingWeighing] = useState<Weighing | null>(null);
   const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
   const [createdCrushingFileId, setCreatedCrushingFileId] = useState<string | null>(null);
 
