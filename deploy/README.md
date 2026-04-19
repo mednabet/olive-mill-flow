@@ -6,23 +6,23 @@ Package de déploiement pour héberger l'application sur un serveur Windows avec
 
 Cette application utilise actuellement **Lovable Cloud (Supabase)** pour l'authentification, l'API REST/Realtime, les RLS et les edge functions.
 
-Ce script **ne remplace pas Supabase**. Il fait :
+Le script de déploiement fait :
 
 ✅ Installe les prérequis (Node 20, IIS, URL Rewrite, PostgreSQL 16)
 ✅ Crée une base PostgreSQL locale `oliveapp` avec le schéma complet (tables, enums, fonctions, triggers) en miroir du schéma Supabase
 ✅ Build le frontend Vite (TanStack Start SSR désactivé → SPA statique)
 ✅ Configure le site IIS avec `web.config` (réécriture SPA + compression + cache)
+✅ **Installe PostgREST** + NSSM en service Windows → expose la base en API REST locale (port 3000) compatible Supabase REST
+✅ Crée les rôles `authenticator` / `web_anon` / `authenticated` et configure JWT
 
-❌ Ne fournit PAS d'API REST locale (PostgREST, Hasura ou backend Node à brancher manuellement)
-❌ Ne migre PAS l'authentification (à remplacer par Keycloak / authelia / backend custom)
-❌ Ne déploie PAS les edge functions (`admin-users` etc.)
+❌ Ne migre PAS l'authentification (à remplacer par Keycloak / authelia / backend custom signant des JWT compatibles PostgREST)
+❌ Ne déploie PAS les edge functions (`admin-users` etc. — à réécrire en route backend)
+❌ PostgREST n'expose pas le Realtime Supabase (utiliser `LISTEN/NOTIFY` PostgreSQL ou ajouter un service séparé)
 
-**Pour un vrai déploiement 100 % local**, vous devez ensuite :
-1. Installer **PostgREST** (https://postgrest.org) pointé vers `oliveapp` pour exposer une API REST compatible Supabase, OU écrire un backend Node/Express
-2. Remplacer l'auth Supabase par votre solution (JWT signé compatible PostgREST)
-3. Réécrire les edge functions en routes backend
-
-Le script génère un fichier `.env.production` que vous éditez avant le build pour pointer vers votre future API.
+**Pour basculer le frontend vers PostgREST local** :
+1. Éditez `.env.production` (généré par `04-build.ps1`) : commentez les lignes Supabase, activez `VITE_API_URL="http://localhost:3000"`
+2. Adaptez les appels Supabase JS → `fetch` REST direct ou `postgrest-js`
+3. Implémentez un service d'auth qui signe des JWT avec le secret généré (voir `C:\PostgREST\credentials.txt`)
 
 ---
 
