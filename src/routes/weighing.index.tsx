@@ -6,7 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Scale, Search, ChevronRight } from "lucide-react";
+import { Scale, Search, ChevronRight, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useI18n } from "@/lib/i18n";
@@ -14,12 +14,14 @@ import { RequireRole } from "@/components/RequireRole";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { WeighingDetailPanel } from "@/components/weighing/WeighingDetailPanel";
+import { NewArrivalDialog } from "@/components/arrivals/NewArrivalDialog";
 import { formatKg } from "@/lib/format";
 
 type Arrival = Database["public"]["Tables"]["arrivals"]["Row"];
@@ -53,6 +55,7 @@ function WeighingListPage() {
   const [serviceTab, setServiceTab] = useState<ServiceTab>("all");
   const [statusFilter, setStatusFilter] = useState<"pending" | "all">("pending");
   const [openArrivalId, setOpenArrivalId] = useState<string | null>(null);
+  const [showNew, setShowNew] = useState(false);
 
   // Compat : si on arrive avec ?arrival=ID, on ouvre directement le sheet.
   useEffect(() => {
@@ -118,7 +121,17 @@ function WeighingListPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("weigh.title")} subtitle={t("weigh.subtitle")} icon={<Scale className="h-5 w-5" />} />
+      <PageHeader
+        title={t("weigh.title")}
+        subtitle={t("weigh.subtitle")}
+        icon={<Scale className="h-5 w-5" />}
+        actions={
+          <Button onClick={() => setShowNew(true)} size="lg">
+            <Plus className="me-1 h-4 w-4" />
+            {t("arrival.new")}
+          </Button>
+        }
+      />
 
       <Tabs value={serviceTab} onValueChange={(v) => setServiceTab(v as ServiceTab)}>
         <TabsList className="flex-wrap">
@@ -187,6 +200,12 @@ function WeighingListPage() {
           {openArrivalId && <WeighingDetailPanel arrivalId={openArrivalId} />}
         </SheetContent>
       </Sheet>
+
+      <NewArrivalDialog
+        open={showNew}
+        onOpenChange={setShowNew}
+        onCreated={(id) => setOpenArrivalId(id)}
+      />
     </div>
   );
 }

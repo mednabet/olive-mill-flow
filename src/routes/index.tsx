@@ -136,7 +136,7 @@ function Dashboard() {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="gap-2">
-            <Link to="/arrivals">
+            <Link to="/weighing">
               <Plus className="h-4 w-4" />
               {t("dash.new_arrival")}
             </Link>
