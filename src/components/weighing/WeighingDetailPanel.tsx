@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Scale, Printer, XCircle, Car, FileText, Link2 } from "lucide-react";
+import { Scale, Printer, XCircle, Car, FileText, Link2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
@@ -79,6 +79,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const [printOpen, setPrintOpen] = useState(false);
   const [printCrushingOpen, setPrintCrushingOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [createdCrushingCode, setCreatedCrushingCode] = useState<string | null>(null);
   const [createdCrushingFileId, setCreatedCrushingFileId] = useState<string | null>(null);
