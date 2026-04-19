@@ -90,7 +90,6 @@ export function EditWeighingDialog({
     mutationFn: async () => {
       const newW = parseFloat(weight);
       if (!Number.isFinite(newW) || newW < 0) throw new Error(t("validation.positive"));
-      if (!reason.trim()) throw new Error(t("weigh.edit_reason_required"));
       if (source === "manual" && !allowManual) throw new Error(t("weigh.manual_disabled"));
       if (source === "manual" && !scaleReason.trim())
         throw new Error(t("weigh.manual_reason_required"));
@@ -212,7 +211,7 @@ export function EditWeighingDialog({
         entity_type: "weighings",
         entity_id: weighing.id,
         user_id: user?.id ?? null,
-        reason: reason.trim(),
+        reason: reason.trim() || null,
         old_values: { weight_kg: weighing.weight_kg, kind: weighing.kind },
         new_values: {
           weight_kg: newW,
