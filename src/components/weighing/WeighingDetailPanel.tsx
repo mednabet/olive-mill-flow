@@ -154,7 +154,34 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
   const isPrivileged = (roles ?? []).some(
     (r: AppRole) => r === "admin" || r === "superviseur",
   );
+  const isPeseur = (roles ?? []).some((r: AppRole) => r === "peseur");
   const allowManual = isPrivileged || (allowManualCfg?.enabled ?? true);
+
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("arrivals")
+        .update({ status: "cancelled", closed_at: new Date().toISOString() })
+        .eq("id", arrivalId);
+      if (error) throw error;
+      await supabase.from("audit_logs").insert({
+        action: "cancel_arrival",
+        entity_type: "arrivals",
+        entity_id: arrivalId,
+        user_id: user?.id ?? null,
+        reason: "Annulation depuis le module Pesage",
+      });
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
+      await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["arrivals"] });
+      await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      toast.success(t("weigh.cancel_arrival_success"));
+      setCancelOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const kind: WeighingKind = useMemo(() => {
     if (!arrival) return "simple";
