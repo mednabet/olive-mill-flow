@@ -31,8 +31,10 @@ interface Props {
   reason: string;
   onReasonChange: (r: string) => void;
   allowManual: boolean;
-  /** URL WebSocket de la balance sélectionnée (null = aucune balance choisie) */
+  /** URL de la balance (ws://, wss://, http://, https://) — null = aucune balance choisie */
   scaleUrl: string | null;
+  /** Intervalle de polling en ms (utilisé uniquement pour HTTP) */
+  scalePollIntervalMs?: number;
   /** Nom de la balance sélectionnée pour l'affichage */
   scaleName?: string | null;
   autoFocus?: boolean;
