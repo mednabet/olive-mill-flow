@@ -199,6 +199,7 @@ function ScaleFormDialog({
   const [kind, setKind] = useState<ScaleKind>("scale");
   const [url, setUrl] = useState("");
   const [maxCap, setMaxCap] = useState("5000");
+  const [pollMs, setPollMs] = useState("1000");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -208,9 +209,12 @@ function ScaleFormDialog({
       setKind(scale?.kind ?? "scale");
       setUrl(scale?.websocket_url ?? "");
       setMaxCap(String(scale?.max_capacity_kg ?? 5000));
+      setPollMs(String(scale?.poll_interval_ms ?? 1000));
       setNotes(scale?.notes ?? "");
     }
   }, [open, scale]);
+
+  const isHttp = /^https?:\/\//i.test(url.trim());
 
   const save = useMutation({
     mutationFn: async () => {
