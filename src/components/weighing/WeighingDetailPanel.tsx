@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Scale, Printer, XCircle, Car, FileText, Link2, Trash2 } from "lucide-react";
+import { Scale, Printer, XCircle, Car, FileText, Link2, Trash2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
