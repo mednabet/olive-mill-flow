@@ -509,7 +509,14 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               <Button variant="outline" onClick={reset} disabled={save.isPending || !weight}>
                 {t("common.cancel")}
               </Button>
-              <Button onClick={() => save.mutate()} disabled={save.isPending || !weight}>
+              <Button
+                onClick={() => save.mutate()}
+                disabled={
+                  save.isPending ||
+                  !weight ||
+                  (arrival.service_type === "crushing" && !arrival.product_id)
+                }
+              >
                 {t("weigh.save")}
               </Button>
             </div>
