@@ -89,7 +89,7 @@ export function NewArrivalDialog({ open, onOpenChange, onCreated }: NewArrivalDi
     mutationFn: async () => {
       if (!client) throw new Error(t("arrival.client_required"));
       const { data: ticketData, error: ticketErr } = await supabase.rpc("next_arrival_ticket", {
-        _service_type: serviceType,
+        _service_type: weighingType,
       });
       if (ticketErr) throw ticketErr;
       const ticket = ticketData as string;
@@ -100,7 +100,8 @@ export function NewArrivalDialog({ open, onOpenChange, onCreated }: NewArrivalDi
           ticket_number: ticket,
           client_id: client.id,
           vehicle_id: vehicleId || null,
-          service_type: serviceType,
+          service_type: weighingType,
+          needs_crushing: needsCrushing,
           notes: notes.trim() || null,
           created_by: user?.id ?? null,
           status: "open",
