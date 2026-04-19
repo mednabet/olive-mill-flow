@@ -260,6 +260,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       }
 
       let crushingCode: string | null = null;
+      let crushingFileId: string | null = null;
       if (fullyWeighed) {
         await supabase.from("arrivals").update({ status: "routed" }).eq("id", arrival.id);
 
@@ -282,15 +283,61 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
               : null);
 
           if (netKg !== null && netKg > 0) {
-            const { data: existing } = await supabase
+            // Cas 1 : déjà rattaché à un dossier existant (cfa) → rien à créer
+            const { data: existingLink } = await supabase
               .from("crushing_files")
               .select("id, tracking_code")
               .eq("arrival_id", arrival.id)
               .maybeSingle();
 
-            if (existing) {
-              crushingCode = existing.tracking_code;
+            if (existingLink) {
+              crushingCode = existingLink.tracking_code;
+              crushingFileId = existingLink.id;
+            } else if (arrival.target_crushing_file_id) {
+              // Cas 2 : pré-rattachement choisi à la création de l'arrivée
+              const { data: targetFile, error: targetErr } = await supabase
+                .from("crushing_files")
+                .select("id, tracking_code")
+                .eq("id", arrival.target_crushing_file_id)
+                .maybeSingle();
+              if (targetErr) throw targetErr;
+
+              if (targetFile) {
+                // Ajout d'une ligne crushing_file_arrivals (le trigger recalcule les totaux du dossier)
+                const { error: cfaErr } = await supabase
+                  .from("crushing_file_arrivals")
+                  .insert({
+                    crushing_file_id: targetFile.id,
+                    arrival_id: arrival.id,
+                    gross_weight_kg: grossKg,
+                    tare_weight_kg: tareKg,
+                    net_weight_kg: netKg,
+                  });
+                if (cfaErr) throw cfaErr;
+
+                // Mouvement de stock sur le lot rattaché au dossier (s'il existe)
+                const { data: lot } = await supabase
+                  .from("stock_lots")
+                  .select("id")
+                  .eq("crushing_file_id", targetFile.id)
+                  .eq("kind", "client_olives")
+                  .maybeSingle();
+                if (lot) {
+                  await supabase.from("stock_movements").insert({
+                    lot_id: lot.id,
+                    movement_type: "in",
+                    quantity_kg: netKg,
+                    reference_id: targetFile.id,
+                    reason: `Pesage arrivée ${arrival.ticket_number} (rattachement)`,
+                    created_by: user?.id ?? null,
+                  });
+                }
+
+                crushingCode = targetFile.tracking_code;
+                crushingFileId = targetFile.id;
+              }
             } else {
+              // Cas 3 : création d'un nouveau dossier
               const { data: codeData, error: codeErr } = await supabase.rpc(
                 "next_crushing_code",
               );
@@ -314,6 +361,7 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
                 .single();
               if (cfErr) throw cfErr;
               crushingCode = code;
+              crushingFileId = cf.id;
 
               const { data: lotCode, error: lotCodeErr } = await supabase.rpc(
                 "next_lot_code",
@@ -348,9 +396,9 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
           }
         }
       }
-      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode, toastNet };
+      return { isDoubleDone, isSimpleDone, fullyWeighed, crushingCode, crushingFileId, toastNet, attached: !!arrival.target_crushing_file_id };
     },
-    onSuccess: async ({ fullyWeighed, crushingCode, toastNet }) => {
+    onSuccess: async ({ fullyWeighed, crushingCode, crushingFileId, toastNet, attached }) => {
       await qc.invalidateQueries({ queryKey: ["weighing-arrival", arrivalId] });
       await qc.invalidateQueries({ queryKey: ["weighing-arrivals"] });
       await qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -359,13 +407,19 @@ export function WeighingDetailPanel({ arrivalId }: WeighingDetailPanelProps) {
       await qc.invalidateQueries({ queryKey: ["stock-lots"] });
       reset();
       if (fullyWeighed) {
-        if (crushingCode) {
+        if (crushingCode && crushingFileId) {
           setCreatedCrushingCode(crushingCode);
-          toast.success(t("weigh.crushing_created", crushingCode));
+          setCreatedCrushingFileId(crushingFileId);
+          toast.success(
+            attached
+              ? t("weigh.crushing_attached", crushingCode)
+              : t("weigh.crushing_created", crushingCode),
+          );
+          setPrintCrushingOpen(true);
         } else {
           toast.success(t("weigh.second_done", toastNet !== null ? formatKg(toastNet) : ""));
+          setPrintOpen(true);
         }
-        setPrintOpen(true);
       } else {
         toast.success(t("weigh.first_done"));
       }
