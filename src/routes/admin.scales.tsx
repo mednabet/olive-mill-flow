@@ -199,6 +199,7 @@ function ScaleFormDialog({
   const [kind, setKind] = useState<ScaleKind>("scale");
   const [url, setUrl] = useState("");
   const [maxCap, setMaxCap] = useState("5000");
+  const [pollMs, setPollMs] = useState("1000");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -208,9 +209,12 @@ function ScaleFormDialog({
       setKind(scale?.kind ?? "scale");
       setUrl(scale?.websocket_url ?? "");
       setMaxCap(String(scale?.max_capacity_kg ?? 5000));
+      setPollMs(String(scale?.poll_interval_ms ?? 1000));
       setNotes(scale?.notes ?? "");
     }
   }, [open, scale]);
+
+  const isHttp = /^https?:\/\//i.test(url.trim());
 
   const save = useMutation({
     mutationFn: async () => {
@@ -221,6 +225,7 @@ function ScaleFormDialog({
         kind,
         websocket_url: url.trim() || null,
         max_capacity_kg: parseFloat(maxCap) || 0,
+        poll_interval_ms: Math.max(200, parseInt(pollMs, 10) || 1000),
         notes: notes.trim() || null,
       };
       if (scale) {
@@ -294,12 +299,41 @@ function ScaleFormDialog({
             <Input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="ws://localhost:9001"
+              placeholder="ws://localhost:9001  ou  https://exemple.com/poids.txt"
               className="font-mono"
               dir="ltr"
             />
-            <p className="text-xs text-muted-foreground">{t("admin.scales.websocket_url_help")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("admin.scales.websocket_url_help")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-semibold">HTTP :</span> texte brut au format{" "}
+              <code className="font-mono">s- 100</code> (stable),{" "}
+              <code className="font-mono">i- 100</code> (instable),{" "}
+              <code className="font-mono">e- ...</code> (erreur).
+            </p>
           </div>
+
+          {isHttp && (
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>
+                Intervalle de polling (ms){" "}
+                <span className="text-xs text-muted-foreground">(min 200)</span>
+              </Label>
+              <Input
+                type="number"
+                min="200"
+                step="100"
+                value={pollMs}
+                onChange={(e) => setPollMs(e.target.value)}
+                className="font-mono tabular"
+                dir="ltr"
+              />
+              <p className="text-xs text-muted-foreground">
+                Fréquence d'interrogation de l'URL HTTP. 1000 ms recommandé.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-1.5 sm:col-span-2">
             <Label>{t("common.notes")}</Label>

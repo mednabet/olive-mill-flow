@@ -711,6 +711,7 @@ export type Database = {
           max_capacity_kg: number
           name: string
           notes: string | null
+          poll_interval_ms: number
           updated_at: string
           websocket_url: string | null
         }
@@ -723,6 +724,7 @@ export type Database = {
           max_capacity_kg?: number
           name: string
           notes?: string | null
+          poll_interval_ms?: number
           updated_at?: string
           websocket_url?: string | null
         }
@@ -735,6 +737,7 @@ export type Database = {
           max_capacity_kg?: number
           name?: string
           notes?: string | null
+          poll_interval_ms?: number
           updated_at?: string
           websocket_url?: string | null
         }
