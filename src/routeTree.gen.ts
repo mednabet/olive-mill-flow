@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WeighingRouteImport } from './routes/weighing'
 import { Route as StocksRouteImport } from './routes/stocks'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PublicDisplayRouteImport } from './routes/public-display'
@@ -21,6 +20,7 @@ import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as CrushingRouteImport } from './routes/crushing'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WeighingIndexRouteImport } from './routes/weighing.index'
 import { Route as ArrivalsIndexRouteImport } from './routes/arrivals.index'
 import { Route as WeighingArrivalIdRouteImport } from './routes/weighing.$arrivalId'
 import { Route as ArrivalsArrivalIdRouteImport } from './routes/arrivals.$arrivalId'
@@ -30,11 +30,6 @@ import { Route as AdminScalesRouteImport } from './routes/admin.scales'
 import { Route as AdminLinesRouteImport } from './routes/admin.lines'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 
-const WeighingRoute = WeighingRouteImport.update({
-  id: '/weighing',
-  path: '/weighing',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const StocksRoute = StocksRouteImport.update({
   id: '/stocks',
   path: '/stocks',
@@ -90,15 +85,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WeighingIndexRoute = WeighingIndexRouteImport.update({
+  id: '/weighing/',
+  path: '/weighing/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArrivalsIndexRoute = ArrivalsIndexRouteImport.update({
   id: '/arrivals/',
   path: '/arrivals/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WeighingArrivalIdRoute = WeighingArrivalIdRouteImport.update({
-  id: '/$arrivalId',
-  path: '/$arrivalId',
-  getParentRoute: () => WeighingRoute,
+  id: '/weighing/$arrivalId',
+  path: '/weighing/$arrivalId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ArrivalsArrivalIdRoute = ArrivalsArrivalIdRouteImport.update({
   id: '/arrivals/$arrivalId',
@@ -143,7 +143,6 @@ export interface FileRoutesByFullPath {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/weighing': typeof WeighingRouteWithChildren
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
   '/admin/scales': typeof AdminScalesRoute
@@ -152,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/arrivals/$arrivalId': typeof ArrivalsArrivalIdRoute
   '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
   '/arrivals/': typeof ArrivalsIndexRoute
+  '/weighing/': typeof WeighingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -165,7 +165,6 @@ export interface FileRoutesByTo {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/weighing': typeof WeighingRouteWithChildren
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
   '/admin/scales': typeof AdminScalesRoute
@@ -174,6 +173,7 @@ export interface FileRoutesByTo {
   '/arrivals/$arrivalId': typeof ArrivalsArrivalIdRoute
   '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
   '/arrivals': typeof ArrivalsIndexRoute
+  '/weighing': typeof WeighingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -188,7 +188,6 @@ export interface FileRoutesById {
   '/public-display': typeof PublicDisplayRoute
   '/queue': typeof QueueRoute
   '/stocks': typeof StocksRoute
-  '/weighing': typeof WeighingRouteWithChildren
   '/admin/audit': typeof AdminAuditRoute
   '/admin/lines': typeof AdminLinesRoute
   '/admin/scales': typeof AdminScalesRoute
@@ -197,6 +196,7 @@ export interface FileRoutesById {
   '/arrivals/$arrivalId': typeof ArrivalsArrivalIdRoute
   '/weighing/$arrivalId': typeof WeighingArrivalIdRoute
   '/arrivals/': typeof ArrivalsIndexRoute
+  '/weighing/': typeof WeighingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -212,7 +212,6 @@ export interface FileRouteTypes {
     | '/public-display'
     | '/queue'
     | '/stocks'
-    | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
     | '/admin/scales'
@@ -221,6 +220,7 @@ export interface FileRouteTypes {
     | '/arrivals/$arrivalId'
     | '/weighing/$arrivalId'
     | '/arrivals/'
+    | '/weighing/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -234,7 +234,6 @@ export interface FileRouteTypes {
     | '/public-display'
     | '/queue'
     | '/stocks'
-    | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
     | '/admin/scales'
@@ -243,6 +242,7 @@ export interface FileRouteTypes {
     | '/arrivals/$arrivalId'
     | '/weighing/$arrivalId'
     | '/arrivals'
+    | '/weighing'
   id:
     | '__root__'
     | '/'
@@ -256,7 +256,6 @@ export interface FileRouteTypes {
     | '/public-display'
     | '/queue'
     | '/stocks'
-    | '/weighing'
     | '/admin/audit'
     | '/admin/lines'
     | '/admin/scales'
@@ -265,6 +264,7 @@ export interface FileRouteTypes {
     | '/arrivals/$arrivalId'
     | '/weighing/$arrivalId'
     | '/arrivals/'
+    | '/weighing/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -279,25 +279,19 @@ export interface RootRouteChildren {
   PublicDisplayRoute: typeof PublicDisplayRoute
   QueueRoute: typeof QueueRoute
   StocksRoute: typeof StocksRoute
-  WeighingRoute: typeof WeighingRouteWithChildren
   AdminAuditRoute: typeof AdminAuditRoute
   AdminLinesRoute: typeof AdminLinesRoute
   AdminScalesRoute: typeof AdminScalesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   ArrivalsArrivalIdRoute: typeof ArrivalsArrivalIdRoute
+  WeighingArrivalIdRoute: typeof WeighingArrivalIdRoute
   ArrivalsIndexRoute: typeof ArrivalsIndexRoute
+  WeighingIndexRoute: typeof WeighingIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/weighing': {
-      id: '/weighing'
-      path: '/weighing'
-      fullPath: '/weighing'
-      preLoaderRoute: typeof WeighingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/stocks': {
       id: '/stocks'
       path: '/stocks'
@@ -375,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/weighing/': {
+      id: '/weighing/'
+      path: '/weighing'
+      fullPath: '/weighing/'
+      preLoaderRoute: typeof WeighingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/arrivals/': {
       id: '/arrivals/'
       path: '/arrivals'
@@ -384,10 +385,10 @@ declare module '@tanstack/react-router' {
     }
     '/weighing/$arrivalId': {
       id: '/weighing/$arrivalId'
-      path: '/$arrivalId'
+      path: '/weighing/$arrivalId'
       fullPath: '/weighing/$arrivalId'
       preLoaderRoute: typeof WeighingArrivalIdRouteImport
-      parentRoute: typeof WeighingRoute
+      parentRoute: typeof rootRouteImport
     }
     '/arrivals/$arrivalId': {
       id: '/arrivals/$arrivalId'
@@ -434,18 +435,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface WeighingRouteChildren {
-  WeighingArrivalIdRoute: typeof WeighingArrivalIdRoute
-}
-
-const WeighingRouteChildren: WeighingRouteChildren = {
-  WeighingArrivalIdRoute: WeighingArrivalIdRoute,
-}
-
-const WeighingRouteWithChildren = WeighingRoute._addFileChildren(
-  WeighingRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientsRoute: ClientsRoute,
@@ -458,24 +447,16 @@ const rootRouteChildren: RootRouteChildren = {
   PublicDisplayRoute: PublicDisplayRoute,
   QueueRoute: QueueRoute,
   StocksRoute: StocksRoute,
-  WeighingRoute: WeighingRouteWithChildren,
   AdminAuditRoute: AdminAuditRoute,
   AdminLinesRoute: AdminLinesRoute,
   AdminScalesRoute: AdminScalesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   ArrivalsArrivalIdRoute: ArrivalsArrivalIdRoute,
+  WeighingArrivalIdRoute: WeighingArrivalIdRoute,
   ArrivalsIndexRoute: ArrivalsIndexRoute,
+  WeighingIndexRoute: WeighingIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

@@ -31,7 +31,7 @@ interface EnrichedArrival extends Arrival {
   weighings: Weighing[];
 }
 
-export const Route = createFileRoute("/weighing")({
+export const Route = createFileRoute("/weighing/")({
   validateSearch: (search: Record<string, unknown>) => ({
     arrival: typeof search.arrival === "string" ? search.arrival : undefined,
   }),
