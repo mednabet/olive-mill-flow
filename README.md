@@ -1,1 +1,1 @@
-install-olive-local-windows.bat -ProjectRoot "C:\app-source\olive-mill-flow-main" -InstallPostgrest
+C:\olive-mill-flow-main\install-olive-local-windows.bat -ProjectRoot "C:\olive-mill-flow-main\olive-mill-flow-main" -InstallPostgrest
