@@ -455,6 +455,10 @@ const dict = {
     "pub.no_queue": "Aucune attente — bienvenue !",
     "pub.fullscreen": "Plein écran",
     "pub.last_update": "Mise à jour",
+    "pub.elapsed": "Démarré il y a",
+    "pub.completed_at": "Terminé à",
+    "pub.weight": "Poids",
+    "pub.next_up": "Suivant",
     // Admin
     "admin.users.title": "Gestion des utilisateurs",
     "admin.users.subtitle": "Comptes et rôles",
@@ -1034,6 +1038,10 @@ const dict = {
     "pub.no_queue": "لا انتظار — مرحباً!",
     "pub.fullscreen": "ملء الشاشة",
     "pub.last_update": "آخر تحديث",
+    "pub.elapsed": "بدأ منذ",
+    "pub.completed_at": "انتهى في",
+    "pub.weight": "الوزن",
+    "pub.next_up": "التالي",
     // Admin
     "admin.users.title": "إدارة المستخدمين",
     "admin.users.subtitle": "الحسابات والأدوار",
