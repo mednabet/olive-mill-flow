@@ -14,15 +14,19 @@ Le script de déploiement fait :
 ✅ Configure le site IIS avec `web.config` (réécriture SPA + compression + cache)
 ✅ **Installe PostgREST** + NSSM en service Windows → expose la base en API REST locale (port 3000) compatible Supabase REST
 ✅ Crée les rôles `authenticator` / `web_anon` / `authenticated` et configure JWT
+✅ **Installe l'API backend Node.js (Fastify)** en service Windows `OliveAppAPI` (port 4000) avec auth JWT (signup/login), bcrypt, CRUD générique sur les tables whitelistées
 
-❌ Ne migre PAS l'authentification (à remplacer par Keycloak / authelia / backend custom signant des JWT compatibles PostgREST)
-❌ Ne déploie PAS les edge functions (`admin-users` etc. — à réécrire en route backend)
-❌ PostgREST n'expose pas le Realtime Supabase (utiliser `LISTEN/NOTIFY` PostgreSQL ou ajouter un service séparé)
+❌ Ne déploie PAS les edge functions Supabase (`admin-users` etc. — à réécrire dans le backend Node)
+❌ Pas de Realtime (utiliser polling ou ajouter un service WebSocket séparé)
 
-**Pour basculer le frontend vers PostgREST local** :
-1. Éditez `.env.production` (généré par `04-build.ps1`) : commentez les lignes Supabase, activez `VITE_API_URL="http://localhost:3000"`
-2. Adaptez les appels Supabase JS → `fetch` REST direct ou `postgrest-js`
-3. Implémentez un service d'auth qui signe des JWT avec le secret généré (voir `C:\PostgREST\credentials.txt`)
+**Pour basculer le frontend vers l'API backend Node locale** :
+1. Éditez `.env.production` : `VITE_API_URL="http://localhost:4000"` (et commentez les `VITE_SUPABASE_*`)
+2. Adaptez les appels Supabase JS → `fetch` REST direct sur `/api/:table` et `/auth/*`
+3. Identifiants et `JWT_SECRET` dans `C:\OliveAppAPI\credentials.txt`
+
+**Pour utiliser PostgREST à la place** :
+1. `.env.production` : `VITE_API_URL="http://localhost:3000"`
+2. Identifiants dans `C:\PostgREST\credentials.txt`
 
 ---
 
@@ -60,13 +64,48 @@ deploy/
 │   ├── 04-build.ps1         # npm ci + build Vite
 │   ├── 05-iis-site.ps1      # Crée AppPool + Site + bindings
 │   ├── 06-postgrest.ps1     # PostgREST + NSSM (service Windows)
+│   ├── 07-api-backend.ps1   # API Node.js Fastify + NSSM (service OliveAppAPI)
 │   └── 99-uninstall.ps1     # Désinstalle (site IIS + DB + PostgREST)
+├── api-backend/             # Sources de l'API Node.js (Fastify + JWT + pg)
+│   ├── package.json
+│   ├── src/server.js        # Auth + CRUD générique
+│   └── sql/auth_tables.sql  # Table auth_users
 ├── config/
 │   ├── web.config           # Réécriture SPA + compression
 │   └── env.production.tpl   # Template .env (édité par 04-build)
 └── sql/
     └── schema.sql           # Schéma complet (généré depuis migrations Supabase)
 ```
+
+## API backend Node.js — utilisation
+
+Une fois installé (étape 7/7), l'API tourne en service Windows automatique :
+
+- **Endpoint** : `http://localhost:4000`
+- **Health** : `http://localhost:4000/health`
+- **Service** : `OliveAppAPI` (gérable via `services.msc`)
+- **Sources** : `C:\OliveAppAPI\src\server.js`
+- **Config** : `C:\OliveAppAPI\.env` (lecture admin uniquement)
+- **Identifiants** (JWT secret, etc.) : `C:\OliveAppAPI\credentials.txt`
+- **Logs** : `C:\OliveAppAPI\api.log` et `api.err.log`
+
+Endpoints disponibles :
+- `POST /auth/signup` `{ email, password, full_name? }` → `{ token, user }`
+- `POST /auth/login` `{ email, password }` → `{ token, user }`
+- `GET  /auth/me` (Bearer JWT)
+- `GET/POST/PATCH/DELETE /api/:table[/:id]` (Bearer JWT)
+
+Tester signup :
+```bash
+curl -X POST http://localhost:4000/auth/signup ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"admin@example.com\",\"password\":\"motdepasse123\"}"
+```
+Le **premier** utilisateur créé reçoit automatiquement le rôle `admin`.
+
+Pour modifier la liste des tables exposées, éditez `ALLOWED_TABLES` dans
+`C:\OliveAppAPI\src\server.js` puis redémarrez le service :
+`Restart-Service OliveAppAPI`.
 
 ## PostgREST — utilisation
 
