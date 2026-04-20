@@ -12,7 +12,9 @@ param(
     [switch]$SkipPostgres,
     [switch]$SkipBuild,
     [switch]$SkipPostgrest,
-    [int]$PostgrestPort = 3000
+    [int]$PostgrestPort = 3000,
+    [switch]$SkipApi,
+    [int]$ApiPort = 4000
 )
 
 $ErrorActionPreference = "Stop"
@@ -108,7 +110,7 @@ try {
     Write-Ok "Site IIS '$SiteName' deploye"
 
     if (-not $SkipPostgrest) {
-        Write-Step "6/6 - Installation PostgREST (API REST locale)"
+        Write-Step "6/7 - Installation PostgREST (API REST locale)"
         & (Join-Path $ScriptsDir "06-postgrest.ps1") `
             -SuperPassword $pgSuperPwd `
             -DbName $DbName `
@@ -119,6 +121,20 @@ try {
         Write-Warn2 "Etape PostgREST ignoree (-SkipPostgrest)"
     }
 
+    if (-not $SkipApi) {
+        Write-Step "7/7 - Installation API backend Node.js (Fastify)"
+        & (Join-Path $ScriptsDir "07-api-backend.ps1") `
+            -SuperPassword $pgSuperPwd `
+            -AppPassword $appUserPwd `
+            -DbName $DbName `
+            -DbUser $DbUser `
+            -Port $ApiPort
+        if ($LASTEXITCODE -ne 0) { throw "Echec installation API backend" }
+        Write-Ok "API backend deployee sur le port $ApiPort"
+    } else {
+        Write-Warn2 "Etape API backend ignoree (-SkipApi)"
+    }
+
     Write-Step "Termine"
     Write-Host ""
     Write-Host "  Application accessible sur : " -NoNewline
@@ -126,9 +142,19 @@ try {
     Write-Host ""
     Write-Host "  Base de donnees : " -NoNewline
     Write-Host "postgresql://${DbUser}:***@localhost:5432/$DbName" -ForegroundColor Green
+    if (-not $SkipApi) {
+        Write-Host "  API backend     : " -NoNewline
+        Write-Host "http://localhost:$ApiPort  (service OliveAppAPI)" -ForegroundColor Green
+        Write-Host "  Identifiants    : C:\OliveAppAPI\credentials.txt" -ForegroundColor Green
+    }
+    if (-not $SkipPostgrest) {
+        Write-Host "  PostgREST       : " -NoNewline
+        Write-Host "http://localhost:$PostgrestPort  (service PostgREST)" -ForegroundColor Green
+    }
     Write-Host ""
-    Write-Host "  Prochaine etape : configurer une API backend (PostgREST ou Node)" -ForegroundColor Yellow
-    Write-Host "  Voir deploy\README.md section 'Important'" -ForegroundColor Yellow
+    Write-Host "  Pour utiliser l'API backend dans le frontend :" -ForegroundColor Yellow
+    Write-Host "    editez .env.production : VITE_API_URL=http://localhost:$ApiPort" -ForegroundColor Yellow
+    Write-Host "    puis relancez 04-build.ps1 et 05-iis-site.ps1" -ForegroundColor Yellow
     Write-Host ""
 
 } catch {
