@@ -432,8 +432,8 @@ function ProductionDialog({
     queryFn: async () => {
       // En édition : on inclut le dossier du record + dossiers in_progress
       const statuses: Database["public"]["Enums"]["crushing_status"][] = isEdit
-        ? ["in_progress", "completed", "assigned"]
-        : ["in_progress", "assigned"];
+        ? ["queued", "assigned", "in_progress", "completed"]
+        : ["queued", "assigned", "in_progress"];
       const { data, error } = await supabase
         .from("crushing_files")
         .select(
