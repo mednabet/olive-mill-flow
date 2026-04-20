@@ -1038,6 +1038,10 @@ const dict = {
     "pub.no_queue": "لا انتظار — مرحباً!",
     "pub.fullscreen": "ملء الشاشة",
     "pub.last_update": "آخر تحديث",
+    "pub.elapsed": "بدأ منذ",
+    "pub.completed_at": "انتهى في",
+    "pub.weight": "الوزن",
+    "pub.next_up": "التالي",
     // Admin
     "admin.users.title": "إدارة المستخدمين",
     "admin.users.subtitle": "الحسابات والأدوار",
